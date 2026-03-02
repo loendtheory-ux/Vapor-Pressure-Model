@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vapor Pressure — Regents Chemistry</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap');
+
+  :root {
+    --navy: #0a1628;
+    --blue: #1a3a6b;
+    --cyan: #00d4ff;
+    --orange: #ff6b2b;
+    --gold: #ffd166;
+    --green: #06d6a0;
+    --light: #e8f4f8;
+    --muted: #8ba7c0;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--navy);
+    color: var(--light);
+    font-family: 'Sora', sans-serif;
+    min-height: 100vh;
+    padding: 24px 16px 40px;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+
+  header .label {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--cyan);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  header h1 {
+    font-size: clamp(28px, 5vw, 48px);
+    font-weight: 700;
+    line-height: 1.1;
+    background: linear-gradient(135deg, #fff 0%, var(--cyan) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  header p.subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    margin-top: 8px;
+    font-weight: 300;
+  }
+
+  /* MAIN DIAGRAM */
+  .diagram-wrapper {
+    max-width: 860px;
+    margin: 0 auto 36px;
+    background: var(--blue);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 20px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .diagram-title {
+    background: rgba(0,0,0,0.3);
+    padding: 12px 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    letter-spacing: 2px;
+    border-bottom: 1px solid rgba(0,212,255,0.2);
+  }
+
+  .container-svg {
+    width: 100%;
+    display: block;
+  }
+
+  /* TEMPERATURE SLIDER */
+  .controls {
+    max-width: 860px;
+    margin: 0 auto 36px;
+    background: rgba(26,58,107,0.5);
+    border: 1px solid rgba(0,212,255,0.15);
+    border-radius: 16px;
+    padding: 20px 28px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .controls label {
+    font-family: 'Space Mono', monospace;
+    font-size: 12px;
+    color: var(--cyan);
+    white-space: nowrap;
+  }
+
+  .controls input[type=range] {
+    flex: 1;
+    min-width: 160px;
+    accent-color: var(--orange);
+    cursor: pointer;
+  }
+
+  .temp-display {
+    font-family: 'Space Mono', monospace;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--orange);
+    min-width: 80px;
+    text-align: right;
+  }
+
+  .vp-display {
+    font-family: 'Space Mono', monospace;
+    font-size: 13px;
+    color: var(--gold);
+    min-width: 140px;
+    text-align: right;
+  }
+
+  /* CONCEPT CARDS */
+  .cards {
+    max-width: 860px;
+    margin: 0 auto 36px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .card {
+    background: rgba(26,58,107,0.6);
+    border: 1px solid rgba(0,212,255,0.15);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    border-radius: 14px 0 0 14px;
+  }
+
+  .card.evap::before { background: var(--orange); }
+  .card.cond::before { background: var(--cyan); }
+  .card.equil::before { background: var(--green); }
+  .card.factors::before { background: var(--gold); }
+
+  .card-icon { font-size: 28px; margin-bottom: 10px; }
+  .card h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; letter-spacing: 0.5px; }
+  .card.evap h3 { color: var(--orange); }
+  .card.cond h3 { color: var(--cyan); }
+  .card.equil h3 { color: var(--green); }
+  .card.factors h3 { color: var(--gold); }
+  .card p { font-size: 13px; line-height: 1.6; color: rgba(232,244,248,0.85); }
+
+  /* CAUSAL CHAIN */
+  .causal {
+    max-width: 860px;
+    margin: 0 auto 36px;
+    background: rgba(26,58,107,0.4);
+    border: 1px solid rgba(255,209,102,0.25);
+    border-radius: 16px;
+    padding: 24px 28px;
+  }
+
+  .causal h2 {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--gold);
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+
+  .chain {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .step {
+    background: rgba(0,0,0,0.35);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: center;
+    max-width: 130px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .step span { display: block; font-weight: 600; color: var(--gold); font-size: 11px; margin-bottom: 4px; }
+
+  .arrow {
+    color: var(--muted);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* REGENTS CORNER */
+  .regents {
+    max-width: 860px;
+    margin: 0 auto;
+    background: rgba(6,214,160,0.08);
+    border: 1px solid rgba(6,214,160,0.3);
+    border-radius: 16px;
+    padding: 20px 28px;
+  }
+
+  .regents h2 {
+    font-family: 'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    color: var(--green);
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+
+  .regents ul {
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 10px;
+  }
+
+  .regents li {
+    font-size: 13px;
+    line-height: 1.5;
+    padding-left: 18px;
+    position: relative;
+    color: rgba(232,244,248,0.9);
+  }
+
+  .regents li::before {
+    content: '▸';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+  }
+
+  .highlight { color: var(--gold); font-weight: 600; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="label">NYS Regents Chemistry</div>
+  <h1>Vapor Pressure</h1>
+  <p class="subtitle">A molecular model of evaporation, condensation, and dynamic equilibrium</p>
+</header>
+
+<!-- INTERACTIVE DIAGRAM -->
+<div class="diagram-wrapper">
+  <div class="diagram-title">⬢ INTERACTIVE CONTAINER MODEL — drag temperature slider below</div>
+  <svg class="container-svg" viewBox="0 0 800 380" id="mainSVG">
+    <!-- Background -->
+    <rect width="800" height="380" fill="#0d1f3c"/>
+
+    <!-- Container walls -->
+    <rect x="80" y="30" width="640" height="320" rx="12" ry="12"
+          fill="none" stroke="rgba(0,212,255,0.4)" stroke-width="3"/>
+
+    <!-- Liquid phase region -->
+    <rect id="liquidRegion" x="82" y="220" width="636" height="128" rx="0" ry="0"
+          fill="rgba(26,90,160,0.45)"/>
+    <rect x="82" y="219" width="636" height="6" fill="rgba(0,212,255,0.3)"/>
+
+    <!-- Phase labels -->
+    <text x="400" y="140" text-anchor="middle" font-family="Space Mono" font-size="11"
+          fill="rgba(0,212,255,0.5)" letter-spacing="3">GAS PHASE (vapor)</text>
+    <text x="400" y="300" text-anchor="middle" font-family="Space Mono" font-size="11"
+          fill="rgba(100,180,255,0.6)" letter-spacing="3">LIQUID PHASE</text>
+
+    <!-- Liquid molecules (static grid) -->
+    <g id="liquidMols">
+      <!-- Row 1 -->
+      <circle cx="150" cy="250" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="190" cy="255" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="230" cy="248" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="270" cy="254" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="310" cy="249" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="350" cy="253" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="390" cy="250" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="430" cy="255" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="470" cy="248" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="510" cy="254" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="550" cy="250" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="590" cy="253" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="630" cy="249" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <!-- Row 2 -->
+      <circle cx="130" cy="280" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="170" cy="275" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="210" cy="282" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="250" cy="277" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="290" cy="281" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="330" cy="276" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="370" cy="280" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="410" cy="275" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="450" cy="282" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="490" cy="277" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="530" cy="280" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="570" cy="275" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="610" cy="281" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="650" cy="276" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <!-- Row 3 -->
+      <circle cx="150" cy="310" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="190" cy="315" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="230" cy="308" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="270" cy="314" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="310" cy="309" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="350" cy="313" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="390" cy="310" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="430" cy="315" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="470" cy="308" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="510" cy="313" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="550" cy="310" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="590" cy="314" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+      <circle cx="630" cy="309" r="10" fill="#1a6fa0" stroke="rgba(0,212,255,0.6)" stroke-width="1.5"/>
+    </g>
+
+    <!-- Gas molecules (animated, count depends on temp) -->
+    <g id="gasMols"></g>
+
+    <!-- Arrows for evaporation and condensation -->
+    <!-- Evap arrow -->
+    <g id="evapArrow">
+      <line x1="120" y1="215" x2="120" y2="165" stroke="#ff6b2b" stroke-width="2.5" stroke-dasharray="5,3" opacity="0.8"/>
+      <polygon points="120,155 114,170 126,170" fill="#ff6b2b" opacity="0.8"/>
+      <text x="60" y="195" text-anchor="middle" font-family="Sora" font-size="11" fill="#ff6b2b" font-weight="600">EVAP</text>
+    </g>
+    <!-- Cond arrow -->
+    <g id="condArrow">
+      <line x1="680" y1="165" x2="680" y2="215" stroke="#00d4ff" stroke-width="2.5" stroke-dasharray="5,3" opacity="0.8"/>
+      <polygon points="680,225 674,210 686,210" fill="#00d4ff" opacity="0.8"/>
+      <text x="740" y="195" text-anchor="middle" font-family="Sora" font-size="11" fill="#00d4ff" font-weight="600">COND</text>
+    </g>
+
+    <!-- Pressure gauge -->
+    <g transform="translate(640,60)">
+      <circle cx="0" cy="0" r="40" fill="#0d1f3c" stroke="rgba(255,209,102,0.5)" stroke-width="2"/>
+      <text x="0" y="-14" text-anchor="middle" font-family="Space Mono" font-size="8" fill="rgba(255,209,102,0.7)" letter-spacing="1">VAPOR</text>
+      <text x="0" y="-4" text-anchor="middle" font-family="Space Mono" font-size="8" fill="rgba(255,209,102,0.7)" letter-spacing="1">PRESSURE</text>
+      <text id="gaugeText" x="0" y="16" text-anchor="middle" font-family="Space Mono" font-size="14" fill="#ffd166" font-weight="700">18</text>
+      <text x="0" y="28" text-anchor="middle" font-family="Space Mono" font-size="7" fill="rgba(255,209,102,0.6)">mmHg</text>
+      <!-- Gauge arc -->
+      <path id="gaugeArc" d="M-30,5 A30,30 0 0,1 30,5" fill="none" stroke="#ffd166" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+    </g>
+
+    <!-- Equilibrium indicator -->
+    <g transform="translate(400,60)">
+      <rect x="-80" y="-20" width="160" height="40" rx="8" fill="rgba(6,214,160,0.1)" stroke="rgba(6,214,160,0.4)" stroke-width="1"/>
+      <text id="equilText" x="0" y="5" text-anchor="middle" font-family="Space Mono" font-size="11"
+            fill="#06d6a0" letter-spacing="1">⇌ EQUILIBRIUM</text>
+    </g>
+
+    <!-- KE distribution indicator -->
+    <text x="400" y="360" text-anchor="middle" font-family="Sora" font-size="11"
+          fill="rgba(255,107,43,0.8)">
+      ↑ Higher temp = more molecules with sufficient KE to escape liquid
+    </text>
+  </svg>
+</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <label for="tempSlider">🌡 TEMPERATURE</label>
+  <input type="range" id="tempSlider" min="0" max="100" value="25" step="1">
+  <div class="temp-display" id="tempDisplay">25°C</div>
+  <div class="vp-display" id="vpDisplay">VP ≈ 24 mmHg</div>
+</div>
+
+<!-- CONCEPT CARDS -->
+<div class="cards">
+  <div class="card evap">
+    <div class="card-icon">🔴</div>
+    <h3>EVAPORATION</h3>
+    <p>High-energy liquid molecules at the surface <em>overcome intermolecular forces</em> and escape into the gas phase. This happens continuously — even below boiling point.</p>
+  </div>
+  <div class="card cond">
+    <div class="card-icon">🔵</div>
+    <h3>CONDENSATION</h3>
+    <p>Gas molecules slow down, lose energy to collisions, and are recaptured by intermolecular forces — returning to the liquid. Rate depends on vapor molecule concentration.</p>
+  </div>
+  <div class="card equil">
+    <div class="card-icon">⇌</div>
+    <h3>DYNAMIC EQUILIBRIUM</h3>
+    <p>In a <em>closed container</em>, evaporation and condensation rates become equal. Vapor molecule count stays constant. The pressure of that vapor = <strong>vapor pressure</strong>.</p>
+  </div>
+  <div class="card factors">
+    <div class="card-icon">📊</div>
+    <h3>WHAT AFFECTS VP?</h3>
+    <p><strong>Temperature ↑ → VP ↑</strong>: More KE, more escapes. <strong>Weaker IMFs → Higher VP</strong> (more volatile). VP does <em>not</em> depend on amount of liquid or surface area.</p>
+  </div>
+</div>
+
+<!-- CAUSAL CHAIN -->
+<div class="causal">
+  <h2>▸ Causal Mechanism: Temperature → Vapor Pressure</h2>
+  <div class="chain">
+    <div class="step"><span>CAUSE</span>Temperature increases</div>
+    <div class="arrow">→</div>
+    <div class="step"><span>KMT</span>Average kinetic energy of molecules increases</div>
+    <div class="arrow">→</div>
+    <div class="step"><span>DISTRIBUTION</span>More molecules exceed the "escape energy" threshold</div>
+    <div class="arrow">→</div>
+    <div class="step"><span>RATE</span>Evaporation rate increases</div>
+    <div class="arrow">→</div>
+    <div class="step"><span>RESULT</span>More vapor molecules in gas phase</div>
+    <div class="arrow">→</div>
+    <div class="step"><span>EFFECT</span>Vapor pressure increases</div>
+    <div class="arrow">→</div>
+    <div class="step"><span>BOILING</span>When VP = atm pressure → boiling point!</div>
+  </div>
+</div>
+
+<!-- REGENTS CORNER -->
+<div class="regents">
+  <h2>★ Regents Key Takeaways</h2>
+  <ul>
+    <li>Vapor pressure is measured in a <span class="highlight">closed container at equilibrium</span></li>
+    <li><span class="highlight">Temperature ↑ → VP ↑</span> (always, for all substances)</li>
+    <li>Substances with <span class="highlight">weak IMFs</span> (nonpolar, small) have <span class="highlight">high VP</span> (volatile)</li>
+    <li>At the <span class="highlight">boiling point</span>, VP = external (atmospheric) pressure</li>
+    <li>VP does <span class="highlight">NOT</span> depend on the quantity of liquid or gas present</li>
+    <li>Use the <span class="highlight">Reference Tables</span> (Table H) for VP vs. temperature graphs</li>
+    <li><span class="highlight">Ethanol > water</span> in VP — weaker hydrogen bonding than water</li>
+    <li>VP is a property of the <span class="highlight">substance + temperature only</span></li>
+  </ul>
+</div>
+
+<script>
+  // Approximate vapor pressure of water using Antoine equation simplified
+  function waterVP(T) {
+    // returns mmHg; T in Celsius
+    // Simple exponential fit: VP ≈ 5 * e^(0.0506*T)
+    return Math.round(5 * Math.exp(0.0506 * T));
+  }
+
+  const svg = document.getElementById('mainSVG');
+  const gasMols = document.getElementById('gasMols');
+  const slider = document.getElementById('tempSlider');
+  const tempDisplay = document.getElementById('tempDisplay');
+  const vpDisplay = document.getElementById('vpDisplay');
+  const gaugeText = document.getElementById('gaugeText');
+  const equilText = document.getElementById('equilText');
+
+  // Particle state
+  let particles = [];
+
+  function initParticles(count) {
+    gasMols.innerHTML = '';
+    particles = [];
+    for (let i = 0; i < count; i++) {
+      const p = {
+        x: 100 + Math.random() * 600,
+        y: 40 + Math.random() * 170,
+        vx: (Math.random() - 0.5) * 4,
+        vy: (Math.random() - 0.5) * 4,
+        id: 'p' + i
+      };
+      particles.push(p);
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('r', '9');
+      circle.setAttribute('fill', '#ff6b2b');
+      circle.setAttribute('stroke', 'rgba(255,180,100,0.8)');
+      circle.setAttribute('stroke-width', '1.5');
+      circle.setAttribute('id', p.id);
+      gasMols.appendChild(circle);
+    }
+  }
+
+  function updateParticles(speed) {
+    for (const p of particles) {
+      p.x += p.vx * speed;
+      p.y += p.vy * speed;
+      // Bounce off walls (gas region: x 85-715, y 35-215)
+      if (p.x < 90) { p.x = 90; p.vx = Math.abs(p.vx); }
+      if (p.x > 710) { p.x = 710; p.vx = -Math.abs(p.vx); }
+      if (p.y < 40) { p.y = 40; p.vy = Math.abs(p.vy); }
+      if (p.y > 210) { p.y = 210; p.vy = -Math.abs(p.vy); }
+
+      const el = document.getElementById(p.id);
+      if (el) {
+        el.setAttribute('cx', p.x.toFixed(1));
+        el.setAttribute('cy', p.y.toFixed(1));
+      }
+    }
+  }
+
+  let currentCount = 5;
+  let targetCount = 5;
+  let animSpeed = 1;
+
+  function updateFromTemp(T) {
+    const vp = waterVP(T);
+    tempDisplay.textContent = T + '°C';
+    vpDisplay.textContent = 'VP ≈ ' + vp + ' mmHg';
+    gaugeText.textContent = vp;
+
+    // Map 0-100°C to 2-30 particles
+    targetCount = Math.round(2 + (T / 100) * 28);
+    animSpeed = 0.5 + (T / 100) * 2.5;
+
+    if (Math.abs(targetCount - currentCount) >= 3) {
+      currentCount = targetCount;
+      initParticles(currentCount);
+    }
+
+    // Colour shift - hot = more orange, cold = more blue
+    const r = Math.round(26 + (T / 100) * 40);
+    const g = Math.round(90 - (T / 100) * 50);
+    const b = Math.round(160 - (T / 100) * 80);
+    document.getElementById('liquidRegion').setAttribute('fill', `rgba(${r},${g},${b},0.45)`);
+  }
+
+  slider.addEventListener('input', () => updateFromTemp(parseInt(slider.value)));
+
+  initParticles(5);
+  updateFromTemp(25);
+
+  function animate() {
+    updateParticles(animSpeed);
+    requestAnimationFrame(animate);
+  }
+  animate();
+</script>
+</body>
+</html>
