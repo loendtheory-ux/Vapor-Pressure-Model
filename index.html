@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vapor Pressure — Regents Chemistry</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap');
+  :root {
+    --navy:#0a1628; --blue:#1a3a6b; --cyan:#00d4ff;
+    --orange:#ff6b2b; --gold:#ffd166; --green:#06d6a0;
+    --light:#e8f4f8; --muted:#8ba7c0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--navy);color:var(--light);font-family:'Sora',sans-serif;min-height:100vh;padding:20px 16px 48px;}
+  header{text-align:center;margin-bottom:20px;}
+  .label{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:4px;color:var(--cyan);text-transform:uppercase;margin-bottom:6px;}
+  h1{font-size:clamp(24px,5vw,42px);font-weight:700;background:linear-gradient(135deg,#fff 0%,var(--cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .subtitle{color:var(--muted);font-size:13px;margin-top:5px;font-weight:300;}
+
+  .panel{max-width:900px;margin:0 auto 16px;background:#0d1f3c;border:1px solid rgba(0,212,255,0.22);border-radius:18px;overflow:hidden;}
+  .panel-title{background:rgba(0,0,0,0.38);padding:9px 18px;font-family:'Space Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;border-bottom:1px solid rgba(0,212,255,0.18);display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+  .legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle;}
+  canvas{display:block;width:100%;}
+
+  /* ── Substance selector ── */
+  .substance-panel{max-width:900px;margin:0 auto 16px;background:rgba(26,58,107,0.45);border:1px solid rgba(0,212,255,0.18);border-radius:14px;padding:16px 22px;}
+  .substance-panel h3{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--cyan);margin-bottom:12px;}
+  .substance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+  .substance-card{border-radius:10px;padding:12px 14px;cursor:pointer;border:2px solid transparent;transition:all 0.25s;position:relative;background:rgba(0,0,0,0.3);}
+  .substance-card.active{background:rgba(255,255,255,0.07);}
+  .substance-card:hover{background:rgba(255,255,255,0.05);}
+  .substance-card .s-header{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .substance-card .s-dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,0.3);}
+  .substance-card .s-name{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;}
+  .substance-card .s-formula{font-size:10px;color:var(--muted);margin-bottom:4px;}
+  .substance-card .s-imf{font-size:10px;line-height:1.4;color:rgba(232,244,248,0.7);}
+  .substance-card .s-toggle{position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:10px;}
+  .substance-card.active .s-toggle{background:rgba(6,214,160,0.8);border-color:var(--green);}
+  .mix-note{font-size:11px;color:var(--muted);margin-top:10px;font-style:italic;}
+
+  /* ── Controls ── */
+  .controls{max-width:900px;margin:0 auto 16px;background:rgba(26,58,107,0.5);border:1px solid rgba(0,212,255,0.15);border-radius:14px;padding:14px 22px;}
+  .ctrl-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .ctrl-row label{font-family:'Space Mono',monospace;font-size:12px;color:var(--cyan);white-space:nowrap;}
+  .ctrl-row input[type=range]{flex:1;min-width:140px;accent-color:var(--orange);cursor:pointer;}
+  .temp-display{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--orange);min-width:65px;text-align:right;}
+  .vp-display{font-family:'Space Mono',monospace;font-size:12px;color:var(--gold);min-width:200px;text-align:right;line-height:1.6;}
+
+  /* ── Rate bars ── */
+  .rate-panel{max-width:900px;margin:0 auto 14px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .rate-box{background:rgba(26,58,107,0.5);border:1px solid rgba(0,212,255,0.13);border-radius:11px;padding:12px 16px;}
+  .rate-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;margin-bottom:7px;}
+  .rate-label.evap{color:var(--orange);} .rate-label.cond{color:var(--cyan);}
+  .bar-track{height:11px;background:rgba(0,0,0,0.4);border-radius:6px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:6px;transition:width 0.4s ease;}
+  .bar-fill.evap{background:linear-gradient(90deg,#c44,var(--orange));}
+  .bar-fill.cond{background:linear-gradient(90deg,#0aa,var(--cyan));}
+  .rate-val{font-family:'Space Mono',monospace;font-size:11px;margin-top:4px;}
+  .rate-val.evap{color:var(--orange);} .rate-val.cond{color:var(--cyan);}
+
+  .equil-status{max-width:900px;margin:0 auto 18px;border-radius:11px;padding:11px 20px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.5px;text-align:center;transition:background 0.5s,border-color 0.5s,color 0.5s;}
+  .equil-status.at-equil{background:rgba(6,214,160,0.1);border:1px solid rgba(6,214,160,0.38);color:var(--green);}
+  .equil-status.evap-dom{background:rgba(255,107,43,0.09);border:1px solid rgba(255,107,43,0.32);color:var(--orange);}
+  .equil-status.cond-dom{background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.28);color:var(--cyan);}
+
+  .cards{max-width:900px;margin:0 auto 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
+  .card{background:rgba(26,58,107,0.55);border:1px solid rgba(0,212,255,0.12);border-radius:11px;padding:14px;position:relative;overflow:hidden;}
+  .card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:11px 0 0 11px;}
+  .card.evap::before{background:var(--orange);} .card.cond::before{background:var(--cyan);}
+  .card.equil::before{background:var(--green);} .card.factors::before{background:var(--gold);}
+  .card-icon{font-size:22px;margin-bottom:7px;}
+  .card h3{font-size:12px;font-weight:700;margin-bottom:5px;}
+  .card.evap h3{color:var(--orange);} .card.cond h3{color:var(--cyan);}
+  .card.equil h3{color:var(--green);} .card.factors h3{color:var(--gold);}
+  .card p{font-size:11px;line-height:1.6;color:rgba(232,244,248,0.84);}
+
+  .causal{max-width:900px;margin:0 auto 18px;background:rgba(26,58,107,0.38);border:1px solid rgba(255,209,102,0.22);border-radius:12px;padding:16px 20px;}
+  .causal h2{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:12px;}
+  .chain{display:flex;align-items:center;flex-wrap:wrap;gap:5px;}
+  .step{background:rgba(0,0,0,0.35);border-radius:6px;padding:7px 9px;font-size:10px;line-height:1.4;text-align:center;max-width:100px;border:1px solid rgba(255,255,255,0.07);}
+  .step span{display:block;font-weight:700;color:var(--gold);font-size:8px;margin-bottom:2px;letter-spacing:1px;}
+  .arr{color:var(--muted);font-size:14px;flex-shrink:0;}
+
+  .regents{max-width:900px;margin:0 auto;background:rgba(6,214,160,0.07);border:1px solid rgba(6,214,160,0.26);border-radius:12px;padding:16px 20px;}
+  .regents h2{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--green);text-transform:uppercase;margin-bottom:10px;}
+  .regents ul{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:7px;}
+  .regents li{font-size:11px;line-height:1.5;padding-left:14px;position:relative;color:rgba(232,244,248,0.87);}
+  .regents li::before{content:'▸';position:absolute;left:0;color:var(--green);}
+  .hl{color:var(--gold);font-weight:600;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="label">NYS Regents Chemistry</div>
+  <h1>Vapor Pressure</h1>
+  <p class="subtitle">Dynamic equilibrium — select substances, mix liquids, observe molecular behavior</p>
+</header>
+
+<!-- SUBSTANCE SELECTOR -->
+<div class="substance-panel">
+  <h3>⬡ SELECT LIQUID(S) — click to toggle (mix up to 4)</h3>
+  <div class="substance-grid" id="substanceGrid"></div>
+  <div class="mix-note" id="mixNote">Mix multiple liquids to compare volatility — each substance has its own colored molecules</div>
+</div>
+
+<!-- MOLECULAR CONTAINER -->
+<div class="panel">
+  <div class="panel-title" id="containerTitle">
+    <span>⬢ MOLECULAR CONTAINER</span>
+    <span style="margin-left:auto" id="legendItems"></span>
+  </div>
+  <canvas id="sim" height="400"></canvas>
+</div>
+
+<!-- TEMPERATURE SLIDER -->
+<div class="controls">
+  <div class="ctrl-row">
+    <label for="sl">🌡 TEMPERATURE</label>
+    <input type="range" id="sl" min="0" max="100" value="25" step="1">
+    <div class="temp-display" id="tDisp">25°C</div>
+    <div class="vp-display" id="vpDisp">VP ≈ 24 mmHg</div>
+  </div>
+</div>
+
+<!-- BALANCE SCALE -->
+<div class="panel">
+  <div class="panel-title">
+    <span>⚖ EQUILIBRIUM BALANCE</span>
+    <span style="margin-left:auto;color:var(--orange)">▲ evaporation rate</span>
+    <span style="color:var(--cyan)">▼ condensation rate</span>
+    <span style="color:var(--green)" id="scaleStatus">⇌ balanced</span>
+  </div>
+  <canvas id="scale" height="200"></canvas>
+</div>
+
+<!-- RATE BARS -->
+<div class="rate-panel">
+  <div class="rate-box">
+    <div class="rate-label evap">▲ EVAPORATION RATE</div>
+    <div class="bar-track"><div class="bar-fill evap" id="evapBar" style="width:20%"></div></div>
+    <div class="rate-val evap" id="evapVal">LOW</div>
+  </div>
+  <div class="rate-box">
+    <div class="rate-label cond">▼ CONDENSATION RATE</div>
+    <div class="bar-track"><div class="bar-fill cond" id="condBar" style="width:20%"></div></div>
+    <div class="rate-val cond" id="condVal">LOW</div>
+  </div>
+</div>
+
+<div class="equil-status at-equil" id="eqStatus">⇌ DYNAMIC EQUILIBRIUM — evaporation rate = condensation rate</div>
+
+<!-- CONCEPT CARDS -->
+<div class="cards">
+  <div class="card evap">
+    <div class="card-icon">🔴</div>
+    <h3>EVAPORATION</h3>
+    <p>High-energy surface molecules overcome IMFs and escape to gas phase. Rate depends on <em>temperature</em> and <em>IMF strength</em> — weaker IMFs = higher evap rate.</p>
+  </div>
+  <div class="card cond">
+    <div class="card-icon">🔵</div>
+    <h3>CONDENSATION</h3>
+    <p>Vapor molecules lose KE and are recaptured by IMFs. Rate depends on <em>vapor concentration</em> — more vapor = more surface collisions.</p>
+  </div>
+  <div class="card equil">
+    <div class="card-icon">⇌</div>
+    <h3>DYNAMIC EQUILIBRIUM</h3>
+    <p>In a closed container, rates become equal. Constant vapor pressure = <strong>vapor pressure</strong>. Higher temp or weaker IMFs → higher VP.</p>
+  </div>
+  <div class="card factors">
+    <div class="card-icon">📊</div>
+    <h3>TABLE H ORDER</h3>
+    <p>Propanone &gt; Ethanol &gt; Water &gt; Ethanoic acid in VP at any temperature. Propanone has weakest IMFs; ethanoic acid has strongest.</p>
+  </div>
+</div>
+
+<!-- CAUSAL CHAIN -->
+<div class="causal">
+  <h2>▸ Causal Mechanism: Temperature → Vapor Pressure</h2>
+  <div class="chain">
+    <div class="step"><span>CAUSE</span>Temp rises</div><div class="arr">→</div>
+    <div class="step"><span>KMT</span>Avg KE increases</div><div class="arr">→</div>
+    <div class="step"><span>ESCAPE</span>More molecules exceed escape KE</div><div class="arr">→</div>
+    <div class="step"><span>EVAP↑</span>Evap rate jumps</div><div class="arr">→</div>
+    <div class="step"><span>VAPOR↑</span>Vapor count builds</div><div class="arr">→</div>
+    <div class="step"><span>COND↑</span>Cond rate rises to match</div><div class="arr">→</div>
+    <div class="step"><span>NEW EQ</span>Higher VP equilibrium</div><div class="arr">→</div>
+    <div class="step"><span>BOIL</span>VP = P<sub>atm</sub></div>
+  </div>
+</div>
+
+<!-- REGENTS -->
+<div class="regents">
+  <h2>★ Regents Key Takeaways</h2>
+  <ul>
+    <li>VP measured in a <span class="hl">closed container at equilibrium</span></li>
+    <li><span class="hl">Temp ↑ → VP ↑</span> for all liquids</li>
+    <li><span class="hl">Weak IMFs → High VP</span> (more volatile)</li>
+    <li>At <span class="hl">boiling point</span>: VP = 101.3 kPa (atmospheric)</li>
+    <li>VP does <span class="hl">NOT</span> depend on quantity of liquid</li>
+    <li>Use <span class="hl">Table H</span>: propanone, ethanol, water, ethanoic acid</li>
+    <li><span class="hl">Propanone boils ~56°C</span>, ethanol ~78°C, water 100°C, ethanoic acid ~118°C</li>
+    <li>VP is a property of <span class="hl">substance + temperature only</span></li>
+  </ul>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+//  SUBSTANCE DEFINITIONS — Table H accurate VP curves (kPa)
+//  Fitted to match Table H: propanone, ethanol, water, ethanoic acid
+// ═══════════════════════════════════════════════════════════════
+const SUBSTANCES = [
+  {
+    id: 'propanone',
+    name: 'Propanone',
+    formula: '(CH₃)₂CO',
+    imf: 'Dipole-dipole (weak)',
+    // Color: bright yellow-green
+    color:      'rgba(255, 220, 50, 0.92)',
+    colorGlow:  'rgba(255, 240, 120, 1)',
+    colorHex:   '#ffdc32',
+    liquidR: 220, liquidG: 165, liquidB: 20,
+    // VP in kPa: Antoine-fitted. Boiling ~56°C (VP=101.3 at 56°C)
+    vp: T => Math.max(0.1, 24 * Math.exp(0.0475 * (T - 20))),
+    // Evap rate 0-1 relative to all substances
+    evapFactor: 1.0,  // most volatile
+    active: true
+  },
+  {
+    id: 'ethanol',
+    name: 'Ethanol',
+    formula: 'C₂H₅OH',
+    imf: 'H-bonding (moderate)',
+    // Color: purple
+    color:      'rgba(180, 100, 255, 0.92)',
+    colorGlow:  'rgba(210, 160, 255, 1)',
+    colorHex:   '#b464ff',
+    liquidR: 90, liquidG: 40, liquidB: 140,
+    // Boiling ~78°C
+    vp: T => Math.max(0.1, 5.9 * Math.exp(0.0455 * (T - 20))),
+    evapFactor: 0.72,
+    active: false
+  },
+  {
+    id: 'water',
+    name: 'Water',
+    formula: 'H₂O',
+    imf: 'H-bonding (strong)',
+    // Color: cyan-blue
+    color:      'rgba(40, 180, 255, 0.92)',
+    colorGlow:  'rgba(130, 220, 255, 1)',
+    colorHex:   '#28b4ff',
+    liquidR: 18, liquidG: 82, liquidB: 148,
+    // Boiling 100°C
+    vp: T => Math.max(0.1, 5 * Math.exp(0.0506 * T) / 7.5),  // kPa
+    evapFactor: 0.48,
+    active: false
+  },
+  {
+    id: 'ethanoic',
+    name: 'Ethanoic Acid',
+    formula: 'CH₃COOH',
+    imf: 'H-bonding + dimerization (strongest)',
+    // Color: coral-red
+    color:      'rgba(255, 90, 90, 0.92)',
+    colorGlow:  'rgba(255, 160, 140, 1)',
+    colorHex:   '#ff5a5a',
+    liquidR: 140, liquidG: 30, liquidB: 30,
+    // Boiling ~118°C
+    vp: T => Math.max(0.1, 1.6 * Math.exp(0.047 * (T - 20))),
+    evapFactor: 0.28,
+    active: false
+  }
+];
+
+// ═══════════════════════════════════════════════════════════════
+//  SUBSTANCE SELECTOR UI
+// ═══════════════════════════════════════════════════════════════
+function buildSubstanceUI() {
+  const grid = document.getElementById('substanceGrid');
+  grid.innerHTML = '';
+  SUBSTANCES.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'substance-card' + (s.active ? ' active' : '');
+    card.style.borderColor = s.active ? s.colorHex : 'transparent';
+    card.innerHTML = `
+      <div class="s-header">
+        <div class="s-dot" style="background:${s.colorHex}"></div>
+        <div class="s-name" style="color:${s.colorHex}">${s.name}</div>
+        <div class="s-toggle">${s.active ? '✓' : ''}</div>
+      </div>
+      <div class="s-formula">${s.formula}</div>
+      <div class="s-imf">${s.imf}</div>
+    `;
+    card.addEventListener('click', () => {
+      const activeCount = SUBSTANCES.filter(x => x.active).length;
+      if (!s.active || activeCount > 1) {
+        s.active = !s.active;
+        buildSubstanceUI();
+        resetVapors();
+        updateLegend();
+      }
+    });
+    grid.appendChild(card);
+  });
+}
+
+function updateLegend() {
+  const active = SUBSTANCES.filter(s => s.active);
+  const leg = document.getElementById('legendItems');
+  leg.innerHTML = active.map(s =>
+    `<span><span class="legend-dot" style="background:${s.colorHex}"></span>${s.name}</span>`
+  ).join('');
+}
+
+buildSubstanceUI();
+updateLegend();
+
+// ═══════════════════════════════════════════════════════════════
+//  PHYSICS HELPERS
+// ═══════════════════════════════════════════════════════════════
+// Combined VP = sum of partial pressures (Raoult's for ideal mixture)
+function totalVP(T) {
+  return SUBSTANCES.filter(s => s.active).reduce((sum, s) => sum + s.vp(T), 0);
+}
+
+// Evap rate 0–1 for a substance at temp T (normalized so water@100°C ≈ 1)
+function substanceEvapRate(s, T) {
+  return s.evapFactor * (0.06 + (T / 100) * 0.94);
+}
+
+// Overall evap rate = average of active substances
+function combinedEvapRate(T) {
+  const active = SUBSTANCES.filter(s => s.active);
+  if (!active.length) return 0;
+  return active.reduce((sum, s) => sum + substanceEvapRate(s, T), 0) / active.length;
+}
+
+// Target vapor count per substance — proportional to its partial VP (Dalton's Law)
+// More volatile substance = higher partial pressure = more molecules in gas phase
+const TOTAL_MOL_CAP = 60;  // total molecules across all active substances at max temp
+
+function eqCountForSubstance(s, T) {
+  const active = SUBSTANCES.filter(x => x.active);
+  const tvp = active.reduce((sum, x) => sum + x.vp(T), 0);
+  if (tvp === 0) return 2;
+  const fraction = s.vp(T) / tvp;           // this substance's share of total VP
+  const totalTarget = 8 + (T / 100) * (TOTAL_MOL_CAP - 8);  // total grows with temp
+  return Math.max(1, Math.round(fraction * totalTarget));
+}
+
+function totalEqCount(T) {
+  return SUBSTANCES.filter(s => s.active)
+    .reduce((sum, s) => sum + eqCountForSubstance(s, T), 0);
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CANVAS 1 — MOLECULAR SIM
+// ═══════════════════════════════════════════════════════════════
+const simCanvas = document.getElementById('sim');
+const sCtx = simCanvas.getContext('2d');
+function resizeSim() { simCanvas.width = simCanvas.parentElement.clientWidth; simCanvas.height = 400; }
+resizeSim();
+function simLayout() {
+  const W = simCanvas.width, H = simCanvas.height;
+  return { W, H, x0:44, x1:W-44, y0:22, y1:H-22, surf: Math.round(H * 0.60) };
+}
+
+let vapors   = [];   // { id, substanceId, x, y, vx, vy }
+let transits = [];
+let splashes = [];
+let pid = 0;
+const uid = () => ++pid;
+
+function mkVapor(lo, s) {
+  const spd = 0.8 + Math.random() * 1.2, ang = Math.random() * Math.PI * 2;
+  const gasH = lo.surf - lo.y0;
+  return { id:uid(), sid:s.id,
+    x: lo.x0 + 14 + Math.random() * (lo.x1 - lo.x0 - 28),
+    y: lo.y0 + 12 + Math.random() * (gasH * 0.7),
+    vx: Math.cos(ang) * spd,
+    vy: -Math.abs(Math.sin(ang) * spd) - 0.2 };
+}
+
+function resetVapors() {
+  vapors = []; transits = []; splashes = [];
+  const lo = simLayout();
+  SUBSTANCES.filter(s => s.active).forEach(s => {
+    const n = eqCountForSubstance(s, temp);
+    for (let i = 0; i < n; i++) vapors.push(mkVapor(lo, s));
+  });
+  lastEvap = {}; lastCond = 0;
+  SUBSTANCES.forEach(s => { lastEvap[s.id] = 0; });
+}
+
+let lastEvap = {};
+let lastCond = 0;
+SUBSTANCES.forEach(s => { lastEvap[s.id] = 0; });
+
+function spawnEvap(lo, s) {
+  const x = lo.x0 + 18 + Math.random() * (lo.x1 - lo.x0 - 36);
+  transits.push({ id:uid(), type:'evap', sid:s.id,
+    x, y:lo.surf, vx:(Math.random()-.5)*1.1, vy:-(2.2 + Math.random()*1.5) });
+}
+function spawnCond(lo) {
+  if (!vapors.length) return;
+  const idx = Math.floor(Math.random() * vapors.length);
+  const v = vapors.splice(idx, 1)[0];
+  transits.push({ id:v.id, type:'cond', sid:v.sid,
+    x:v.x, y:v.y, vx:(Math.random()-.5)*0.7, vy:1.2 + Math.random()*1.4 });
+}
+function spawnSplash(x, y, color) {
+  for (let i=0; i<5; i++) splashes.push({
+    x, y, vx:(Math.random()-.5)*2.6, vy:-(0.5+Math.random()*2), life:1, r:1.5+Math.random()*2.5, color });
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  CANVAS 2 — BALANCE SCALE
+// ═══════════════════════════════════════════════════════════════
+const scaleCanvas = document.getElementById('scale');
+const bCtx = scaleCanvas.getContext('2d');
+function resizeScale() { scaleCanvas.width = scaleCanvas.parentElement.clientWidth; scaleCanvas.height = 200; }
+resizeScale();
+
+let scaleAngle = 0, scaleVelocity = 0;
+const SCALE_SPRING = 0.22, SCALE_DAMP = 0.65, SCALE_MAX = 0.38;
+let evapPanCount = 0, condPanCount = 0;
+
+function drawScale() {
+  const W = scaleCanvas.width, H = scaleCanvas.height;
+  bCtx.clearRect(0, 0, W, H);
+  const bg = bCtx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0d1f3c'); bg.addColorStop(1,'#060e1e');
+  bCtx.fillStyle = bg; bCtx.fillRect(0,0,W,H);
+
+  const cx = W/2, pivotY = 54;
+  const armLen = Math.min(W*0.36, 200), panR = Math.min(44, W*0.08), pillarH = 50;
+
+  bCtx.save();
+  bCtx.strokeStyle='rgba(0,212,255,0.5)'; bCtx.lineWidth=3;
+  bCtx.beginPath(); bCtx.moveTo(cx,pivotY); bCtx.lineTo(cx,pivotY+pillarH+10); bCtx.stroke();
+  bCtx.strokeStyle='rgba(0,212,255,0.3)'; bCtx.lineWidth=5; bCtx.lineCap='round';
+  bCtx.beginPath(); bCtx.moveTo(cx-30,pivotY+pillarH+10); bCtx.lineTo(cx+30,pivotY+pillarH+10); bCtx.stroke();
+  bCtx.restore();
+
+  bCtx.save();
+  bCtx.shadowColor='rgba(0,212,255,0.4)'; bCtx.shadowBlur=10;
+  bCtx.beginPath(); bCtx.arc(cx,pivotY,7,0,Math.PI*2);
+  bCtx.fillStyle='rgba(0,212,255,0.9)'; bCtx.fill();
+  bCtx.restore();
+
+  bCtx.save();
+  bCtx.translate(cx, pivotY);
+  bCtx.rotate(scaleAngle);
+
+  const beamColor = scaleAngle > 0.05 ? 'rgba(255,150,80,0.9)' :
+                    scaleAngle < -0.05 ? 'rgba(80,210,255,0.9)' : 'rgba(6,214,160,0.9)';
+  bCtx.save();
+  bCtx.shadowColor = scaleAngle > 0.05 ? 'rgba(255,107,43,0.35)' :
+                     scaleAngle < -0.05 ? 'rgba(0,212,255,0.35)' : 'rgba(6,214,160,0.35)';
+  bCtx.shadowBlur=12;
+  bCtx.strokeStyle=beamColor; bCtx.lineWidth=5; bCtx.lineCap='round';
+  bCtx.beginPath(); bCtx.moveTo(-armLen,0); bCtx.lineTo(armLen,0); bCtx.stroke();
+  bCtx.restore();
+
+  const sLen = 38;
+  // LEFT pan — evap
+  bCtx.strokeStyle='rgba(255,107,43,0.55)'; bCtx.lineWidth=1.5; bCtx.setLineDash([3,3]);
+  bCtx.beginPath(); bCtx.moveTo(-armLen,0); bCtx.lineTo(-armLen,sLen); bCtx.stroke();
+  bCtx.setLineDash([]);
+  bCtx.save();
+  bCtx.shadowColor='rgba(255,107,43,0.4)'; bCtx.shadowBlur=10;
+  bCtx.beginPath(); bCtx.arc(-armLen,sLen,panR,0,Math.PI);
+  bCtx.strokeStyle='rgba(255,107,43,0.85)'; bCtx.lineWidth=2.5; bCtx.stroke();
+  bCtx.beginPath(); bCtx.moveTo(-armLen-panR,sLen); bCtx.arc(-armLen,sLen,panR,Math.PI,0,true); bCtx.closePath();
+  bCtx.fillStyle='rgba(255,107,43,0.12)'; bCtx.fill();
+  bCtx.restore();
+  drawPanDots(bCtx,-armLen,sLen,panR,Math.round(evapPanCount),'rgba(255,200,50,0.9)','rgba(255,230,100,1)');
+  bCtx.save(); bCtx.textAlign='center'; bCtx.font='bold 9px "Space Mono",monospace';
+  bCtx.fillStyle='rgba(255,107,43,0.85)'; bCtx.fillText('EVAP',-armLen,sLen+panR+16); bCtx.restore();
+
+  // RIGHT pan — cond
+  bCtx.strokeStyle='rgba(0,212,255,0.55)'; bCtx.lineWidth=1.5; bCtx.setLineDash([3,3]);
+  bCtx.beginPath(); bCtx.moveTo(armLen,0); bCtx.lineTo(armLen,sLen); bCtx.stroke();
+  bCtx.setLineDash([]);
+  bCtx.save();
+  bCtx.shadowColor='rgba(0,212,255,0.4)'; bCtx.shadowBlur=10;
+  bCtx.beginPath(); bCtx.arc(armLen,sLen,panR,0,Math.PI);
+  bCtx.strokeStyle='rgba(0,212,255,0.85)'; bCtx.lineWidth=2.5; bCtx.stroke();
+  bCtx.beginPath(); bCtx.moveTo(armLen-panR,sLen); bCtx.arc(armLen,sLen,panR,Math.PI,0,true); bCtx.closePath();
+  bCtx.fillStyle='rgba(0,212,255,0.10)'; bCtx.fill();
+  bCtx.restore();
+  drawPanDots(bCtx,armLen,sLen,panR,Math.round(condPanCount),'rgba(0,200,245,0.9)','rgba(140,240,255,1)');
+  bCtx.save(); bCtx.textAlign='center'; bCtx.font='bold 9px "Space Mono",monospace';
+  bCtx.fillStyle='rgba(0,212,255,0.85)'; bCtx.fillText('COND',armLen,sLen+panR+16); bCtx.restore();
+
+  bCtx.restore();
+
+  const diff = scaleAngle;
+  let stxt, scol;
+  if (Math.abs(diff) < 0.04) {
+    stxt='⇌  BALANCED  —  dynamic equilibrium'; scol='#06d6a0';
+    document.getElementById('scaleStatus').textContent='⇌ balanced';
+    document.getElementById('scaleStatus').style.color='#06d6a0';
+  } else if (diff > 0) {
+    stxt='▲  EVAPORATION DOMINANT  — vapor accumulating'; scol='#ff6b2b';
+    document.getElementById('scaleStatus').textContent='▲ evap dominant';
+    document.getElementById('scaleStatus').style.color='#ff6b2b';
+  } else {
+    stxt='▼  CONDENSATION DOMINANT  — vapor decreasing'; scol='#00d4ff';
+    document.getElementById('scaleStatus').textContent='▼ cond dominant';
+    document.getElementById('scaleStatus').style.color='#00d4ff';
+  }
+  bCtx.save(); bCtx.textAlign='center'; bCtx.font='600 11px "Space Mono",monospace';
+  bCtx.fillStyle=scol; bCtx.fillText(stxt,W/2,H-16); bCtx.restore();
+
+  if (Math.abs(scaleAngle) < 0.06) {
+    bCtx.save(); bCtx.strokeStyle='rgba(6,214,160,0.5)'; bCtx.lineWidth=1.5;
+    bCtx.beginPath(); bCtx.moveTo(cx-4,pivotY+14); bCtx.lineTo(cx+4,pivotY+14); bCtx.stroke();
+    bCtx.beginPath(); bCtx.moveTo(cx-4,pivotY+20); bCtx.lineTo(cx+4,pivotY+20); bCtx.stroke();
+    bCtx.restore();
+  }
+}
+
+function drawPanDots(ctx,cx,cy,panR,count,fill,stroke) {
+  if(count<=0) return;
+  const n=Math.min(count,12), dotR=4.5;
+  const rows=[[3,cy-6],[4,cy-17],[5,cy-28]];
+  let placed=0;
+  for(const [max,ry] of rows){
+    if(placed>=n) break;
+    const inRow=Math.min(n-placed,max);
+    const sx=cx-(inRow-1)*10/2;
+    for(let c=0;c<inRow;c++){
+      ctx.beginPath(); ctx.arc(sx+c*10,ry,dotR,0,Math.PI*2);
+      ctx.fillStyle=fill; ctx.fill(); ctx.strokeStyle=stroke; ctx.lineWidth=1; ctx.stroke();
+    }
+    placed+=inRow;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  DRAW HELPERS
+// ═══════════════════════════════════════════════════════════════
+function mol(ctx,x,y,r,fill,stroke,sw){
+  ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle=fill; ctx.fill(); ctx.strokeStyle=stroke; ctx.lineWidth=sw; ctx.stroke();
+}
+function rRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
+}
+
+function drawLiquid(lo, t01, ts) {
+  const {x0,x1,y1,surf} = lo;
+  const active = SUBSTANCES.filter(s => s.active);
+  // Average liquid color
+  const n = active.length || 1;
+  const lr = Math.round(active.reduce((a,s)=>a+s.liquidR,0)/n * (1+t01*0.3));
+  const lg = Math.round(active.reduce((a,s)=>a+s.liquidG,0)/n);
+  const lb = Math.round(active.reduce((a,s)=>a+s.liquidB,0)/n);
+  const R=8, sp=21, cols=Math.floor((x1-x0-18)/sp);
+  [surf+14,surf+36,surf+58,surf+80].forEach((ry,ri)=>{
+    if(ry+R>y1-4) return;
+    const off=(ri%2)*(sp/2);
+    for(let c=0;c<cols;c++){
+      const mx=x0+10+off+c*sp; if(mx+R>x1-6) break;
+      const wob=Math.sin(ts*0.0015+c*0.9+ri*1.5)*(0.8+t01*2.2);
+      // Cycle through substance colors in liquid rows
+      const s=active[((ri*7+c*3))%n];
+      const fill=s?`rgba(${s.liquidR+20},${s.liquidG+30},${s.liquidB+40},0.78)`:`rgba(${lr+22},${lg+32},${lb+42},0.78)`;
+      const stroke=s?`rgba(${s.liquidR+55},${s.liquidG+75},${s.liquidB+85},0.92)`:`rgba(${lr+55},${lg+75},${lb+85},0.92)`;
+      mol(sCtx,mx,ry+wob,R-1,fill,stroke,1.5);
+    }
+  });
+}
+
+function drawGauge(lo, T) {
+  const {x1,y0}=lo, cx=x1-56, cy=y0+56, gr=44;
+  const vp=totalVP(T).toFixed(1);
+  const vpMax=totalVP(100);
+  const frac=Math.min(1,totalVP(T)/vpMax);
+  sCtx.save();
+  sCtx.shadowColor='rgba(255,209,102,0.35)'; sCtx.shadowBlur=14;
+  sCtx.beginPath(); sCtx.arc(cx,cy,gr,0,Math.PI*2);
+  sCtx.fillStyle='rgba(8,18,35,0.92)'; sCtx.fill();
+  sCtx.strokeStyle='rgba(255,209,102,0.4)'; sCtx.lineWidth=2; sCtx.stroke();
+  const sa=Math.PI*.75, ea=sa+frac*Math.PI*1.5;
+  sCtx.beginPath(); sCtx.arc(cx,cy,gr-7,sa,ea);
+  sCtx.strokeStyle=`hsl(${45-frac*30},88%,58%)`; sCtx.lineWidth=6; sCtx.lineCap='round'; sCtx.stroke();
+  sCtx.restore();
+  sCtx.save(); sCtx.textAlign='center';
+  sCtx.font='600 8px "Space Mono",monospace'; sCtx.fillStyle='rgba(255,209,102,0.68)';
+  sCtx.fillText('VAPOR',cx,cy-13); sCtx.fillText('PRESSURE',cx,cy-3);
+  sCtx.font='bold 13px "Space Mono",monospace'; sCtx.fillStyle='#ffd166';
+  sCtx.fillText(vp,cx,cy+12);
+  sCtx.font='600 7px "Space Mono",monospace'; sCtx.fillStyle='rgba(255,209,102,0.52)';
+  sCtx.fillText('kPa',cx,cy+26);
+  sCtx.restore();
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  UI UPDATE
+// ═══════════════════════════════════════════════════════════════
+function updateUI(er, crNorm) {
+  const T = Math.round(temp);
+  document.getElementById('tDisp').textContent = T + '°C';
+  const active = SUBSTANCES.filter(s => s.active);
+  const vpLines = active.map(s => `<span style="color:${s.colorHex}">${s.name}: ${s.vp(T).toFixed(1)} kPa</span>`).join(' &nbsp;');
+  document.getElementById('vpDisp').innerHTML = vpLines;
+
+  document.getElementById('evapBar').style.width = (er*100).toFixed(0)+'%';
+  document.getElementById('condBar').style.width = (er*crNorm*100).toFixed(0)+'%';
+  const lbl = r => r<0.2?'VERY LOW':r<0.45?'LOW':r<0.7?'MODERATE':'HIGH';
+  document.getElementById('evapVal').textContent = lbl(er);
+  document.getElementById('condVal').textContent = lbl(er*crNorm);
+  const s = document.getElementById('eqStatus');
+  const diff = crNorm - 1;
+  if (Math.abs(diff) < 0.12) {
+    s.className='equil-status at-equil';
+    s.textContent='⇌ DYNAMIC EQUILIBRIUM — evaporation rate = condensation rate';
+  } else if (diff < 0) {
+    s.className='equil-status evap-dom';
+    s.textContent='▲ EVAPORATION > CONDENSATION — vapor building up… approaching new equilibrium';
+  } else {
+    s.className='equil-status cond-dom';
+    s.textContent='▼ CONDENSATION > EVAPORATION — vapor decreasing… approaching new equilibrium';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  SHARED STATE
+// ═══════════════════════════════════════════════════════════════
+let temp = 25, tTarget = 25;
+
+// Seed vapors
+;(function(){ resetVapors(); })();
+
+// ═══════════════════════════════════════════════════════════════
+//  MAIN LOOP
+// ═══════════════════════════════════════════════════════════════
+function loop(ts) {
+  if (Math.abs(temp-tTarget)>0.05) temp += (tTarget-temp)*0.04;
+  else temp = tTarget;
+
+  const t01 = Math.max(0,Math.min(1,temp/100));
+  const lo = simLayout();
+  const {W,H,x0,x1,y0,y1,surf} = lo;
+
+  // Rates
+  const eq     = totalEqCount(temp);
+  const cur    = vapors.length;
+  const er     = combinedEvapRate(temp);
+  const crNorm = eq>0 ? Math.min(2, cur/eq) : 0;
+
+  // Scale physics
+  evapPanCount += (er*10 - evapPanCount)*0.35;
+  condPanCount += (er*crNorm*10 - condPanCount)*0.35;
+  const targetAngle = (1-crNorm)*SCALE_MAX;
+  const clampedTarget = Math.max(-SCALE_MAX,Math.min(SCALE_MAX,targetAngle));
+  scaleVelocity += (clampedTarget-scaleAngle)*SCALE_SPRING;
+  scaleVelocity *= SCALE_DAMP;
+  scaleAngle += scaleVelocity;
+
+  // ── DRAW SIM
+  sCtx.clearRect(0,0,W,H);
+  const bg=sCtx.createLinearGradient(0,0,0,H);
+  bg.addColorStop(0,'#0d1f3c'); bg.addColorStop(1,'#060e1e');
+  sCtx.fillStyle=bg; sCtx.fillRect(0,0,W,H);
+
+  sCtx.save();
+  sCtx.strokeStyle='rgba(0,212,255,0.42)'; sCtx.lineWidth=2.5;
+  sCtx.shadowColor='rgba(0,212,255,0.2)'; sCtx.shadowBlur=10;
+  rRect(sCtx,x0,y0,x1-x0,y1-y0,14); sCtx.stroke();
+  sCtx.restore();
+
+  // Liquid fill — blended color
+  const active=SUBSTANCES.filter(s=>s.active), n=active.length||1;
+  const lr=Math.round(active.reduce((a,s)=>a+s.liquidR,0)/n);
+  const lg=Math.round(active.reduce((a,s)=>a+s.liquidG,0)/n);
+  const lb=Math.round(active.reduce((a,s)=>a+s.liquidB,0)/n);
+  sCtx.save();
+  sCtx.beginPath(); sCtx.rect(x0+2,surf,x1-x0-4,y1-surf-2); sCtx.clip();
+  const lg2=sCtx.createLinearGradient(0,surf,0,y1);
+  lg2.addColorStop(0,`rgba(${lr},${lg},${lb},0.72)`);
+  lg2.addColorStop(1,`rgba(${Math.round(lr*.55)},${Math.round(lg*.55)},${Math.round(lb*.65)},0.93)`);
+  sCtx.fillStyle=lg2; sCtx.fillRect(x0+2,surf,x1-x0-4,y1-surf-2);
+  sCtx.restore();
+
+  // ── Animated liquid surface — sinusoidal wave
+  sCtx.save();
+  const waveAmp   = 2.5 + t01 * 4.5;          // more agitation at higher temp
+  const waveSpeed = 0.0008 + t01 * 0.0014;
+  const numPts    = Math.floor((x1 - x0) / 3);
+  const waveY = i => {
+    const x = x0 + i * (x1 - x0) / numPts;
+    return surf
+      + Math.sin(x * 0.045 + ts * waveSpeed        ) * waveAmp
+      + Math.sin(x * 0.027 + ts * waveSpeed * 0.7  ) * waveAmp * 0.5
+      + Math.sin(x * 0.018 + ts * waveSpeed * 1.3  ) * waveAmp * 0.3;
+  };
+
+  // Filled wave top — feathered reflection band just below surface
+  const reflGrad = sCtx.createLinearGradient(0, surf - waveAmp*2, 0, surf + 18);
+  reflGrad.addColorStop(0, `rgba(${lr+80},${lg+110},${lb+130}, 0.0)`);
+  reflGrad.addColorStop(0.35, `rgba(${lr+80},${lg+110},${lb+130}, ${0.18 + t01*0.18})`);
+  reflGrad.addColorStop(1, `rgba(${lr+20},${lg+40},${lb+55}, 0.0)`);
+  sCtx.beginPath();
+  sCtx.moveTo(x0, waveY(0));
+  for (let i = 1; i <= numPts; i++) sCtx.lineTo(x0 + i*(x1-x0)/numPts, waveY(i));
+  sCtx.lineTo(x1, surf + 22); sCtx.lineTo(x0, surf + 22); sCtx.closePath();
+  sCtx.fillStyle = reflGrad;
+  sCtx.fill();
+
+  // Glowing wave line
+  const waveGrad = sCtx.createLinearGradient(x0, 0, x1, 0);
+  waveGrad.addColorStop(0,   'rgba(0,212,255,0)');
+  waveGrad.addColorStop(0.08,`rgba(${lr+90},${lg+140},${lb+160},${0.55+t01*0.35})`);
+  waveGrad.addColorStop(0.5, `rgba(${lr+90},${lg+140},${lb+160},${0.75+t01*0.2})`);
+  waveGrad.addColorStop(0.92,`rgba(${lr+90},${lg+140},${lb+160},${0.55+t01*0.35})`);
+  waveGrad.addColorStop(1,   'rgba(0,212,255,0)');
+  sCtx.beginPath();
+  sCtx.moveTo(x0, waveY(0));
+  for (let i = 1; i <= numPts; i++) sCtx.lineTo(x0 + i*(x1-x0)/numPts, waveY(i));
+  sCtx.strokeStyle = waveGrad;
+  sCtx.lineWidth   = 2.5;
+  sCtx.lineJoin    = 'round';
+  sCtx.shadowColor = `rgba(${lr+60},${lg+120},${lb+160}, ${0.4+t01*0.4})`;
+  sCtx.shadowBlur  = 8 + t01 * 10;
+  sCtx.stroke();
+  sCtx.restore();
+
+  drawLiquid(lo,t01,ts);
+
+  sCtx.save(); sCtx.textAlign='center'; sCtx.font='600 11px "Space Mono",monospace';
+  sCtx.fillStyle='rgba(0,212,255,0.28)'; sCtx.fillText('GAS PHASE  (vapor)',W/2,y0+20);
+  sCtx.fillStyle=`rgba(${lr+30},${lg+55},${lb+65},0.42)`; sCtx.fillText('LIQUID PHASE',W/2,surf+26);
+  sCtx.restore();
+
+  sCtx.save(); sCtx.textAlign='left'; sCtx.font='500 10px "Space Mono",monospace';
+  sCtx.fillStyle='rgba(155,210,255,0.48)';
+  sCtx.fillText('vapor: '+cur+' molecules',x0+10,y0+20);
+  sCtx.restore();
+
+  drawGauge(lo,Math.round(temp));
+
+  // Transit particles
+  const remove=[];
+  for(let i=transits.length-1;i>=0;i--){
+    const p=transits[i];
+    const s=SUBSTANCES.find(s=>s.id===p.sid)||SUBSTANCES[2];
+    if(p.type==='evap'){
+      p.x+=p.vx; p.y+=p.vy; p.vy*=0.964;
+      if(p.y<surf-40){
+        vapors.push({id:uid(),sid:p.sid,x:p.x,y:p.y,vx:p.vx+(Math.random()-.5)*.5,vy:Math.min(p.vy,-0.4)});
+        remove.push(i); continue;
+      }
+      sCtx.save(); sCtx.strokeStyle=s.color.replace('0.92','0.28'); sCtx.lineWidth=1.8; sCtx.setLineDash([3,5]);
+      sCtx.beginPath(); sCtx.moveTo(p.x,surf); sCtx.lineTo(p.x,p.y+8); sCtx.stroke(); sCtx.restore();
+      mol(sCtx,p.x,p.y,7.5,s.color,s.colorGlow,2);
+      sCtx.save(); sCtx.textAlign='center'; sCtx.font='bold 11px Sora,sans-serif';
+      sCtx.fillStyle=s.colorHex+'cc'; sCtx.fillText('↑',p.x,p.y-11); sCtx.restore();
+    } else {
+      p.x+=p.vx; p.y+=p.vy; p.vy=Math.min(p.vy+0.06,4);
+      if(p.y>=surf-2){ remove.push(i); spawnSplash(p.x,surf,s.color); continue; }
+      sCtx.save(); sCtx.strokeStyle=s.color.replace('0.92','0.22'); sCtx.lineWidth=1.8; sCtx.setLineDash([3,5]);
+      sCtx.beginPath(); sCtx.moveTo(p.x,p.y-8); sCtx.lineTo(p.x,Math.max(p.y-50,y0+6)); sCtx.stroke(); sCtx.restore();
+      mol(sCtx,p.x,p.y,7.5,s.color,s.colorGlow,2);
+      sCtx.save(); sCtx.textAlign='center'; sCtx.font='bold 11px Sora,sans-serif';
+      sCtx.fillStyle=s.colorHex+'cc'; sCtx.fillText('↓',p.x,p.y+16); sCtx.restore();
+    }
+  }
+  for(const i of remove) transits.splice(i,1);
+
+  // Splashes
+  for(let i=splashes.length-1;i>=0;i--){
+    const s2=splashes[i];
+    s2.x+=s2.vx; s2.y+=s2.vy; s2.vy+=0.14; s2.life-=0.065;
+    if(s2.life<=0){splashes.splice(i,1);continue;}
+    sCtx.beginPath(); sCtx.arc(s2.x,s2.y,s2.r,0,Math.PI*2);
+    sCtx.fillStyle=s2.color.replace('0.92',String(s2.life*0.65)); sCtx.fill();
+  }
+
+  // Vapor molecules — random walk in gas phase
+  // Surface hit: molecule condenses, simultaneously a new one evaporates from that spot
+  const spd=0.48+t01*2.0;
+  for(let vi=vapors.length-1; vi>=0; vi--){
+    const v=vapors[vi];
+    const s=SUBSTANCES.find(s=>s.id===v.sid)||SUBSTANCES[2];
+    v.x+=v.vx*spd; v.y+=v.vy*spd;
+    v.vx+=(Math.random()-.5)*0.15;
+    v.vy+=(Math.random()-.5)*0.15-0.01;
+    const sp2=Math.sqrt(v.vx*v.vx+v.vy*v.vy);
+    const maxS=2.5+t01*1.5;
+    if(sp2>maxS){v.vx=v.vx/sp2*maxS;v.vy=v.vy/sp2*maxS;}
+    if(sp2<0.3&&sp2>0){v.vx=v.vx/sp2*0.3;v.vy=v.vy/sp2*0.3;}
+    if(v.x<x0+9){v.x=x0+9;v.vx=Math.abs(v.vx);}
+    if(v.x>x1-9){v.x=x1-9;v.vx=-Math.abs(v.vx);}
+    if(v.y<y0+9){v.y=y0+9;v.vy=Math.abs(v.vy);}
+    if(v.y>surf-12){
+      // Condense this molecule into the liquid with a splash...
+      spawnSplash(v.x, surf, s.color);
+      // ...and immediately evaporate a new one of the same substance
+      transits.push({ id:uid(), type:'evap', sid:v.sid,
+        x:v.x, y:surf, vx:(Math.random()-.5)*1.1, vy:-(2.2+Math.random()*1.5) });
+      vapors.splice(vi, 1);
+      continue;
+    }
+    mol(sCtx,v.x,v.y,7.5,s.color,s.colorGlow,1.5);
+  }
+
+  // ── Spawn logic
+  // New evaporation (net addition): ONLY when cur < eq — i.e. temperature just increased
+  // and we need more molecules to reach the new equilibrium. These rise from the liquid surface.
+  // At equilibrium, the surface-exchange loop above (condense→re-evaporate) handles all activity.
+  const activeS = SUBSTANCES.filter(s => s.active);
+  for(const s of activeS){
+    const sEq   = eqCountForSubstance(s, temp);
+    const sCur  = vapors.filter(v => v.sid === s.id).length;
+    const deficit = sEq - sCur;
+    if(deficit > 0){
+      // Under-equilibrium: spawn new molecules from liquid to build up vapor count
+      const evapMs = Math.max(150, 400 - deficit * 40);
+      if(!lastEvap[s.id]) lastEvap[s.id] = 0;
+      if(ts - lastEvap[s.id] > evapMs){ spawnEvap(lo, s); lastEvap[s.id] = ts; }
+    }
+    // At or above equilibrium: no new spawns — surface exchange loop handles dynamics
+  }
+
+  // Condensation: only when over-equilibrium (temp just decreased)
+  const excess = Math.max(0, cur - eq);
+  const condMs = cur > eq ? Math.max(200, 600 - excess * 50) : 99999;
+  if(ts - lastCond > condMs && cur > 0){ spawnCond(lo); lastCond = ts; }
+  if(vapors.length > 100) vapors.splice(0, vapors.length - 100);
+
+  drawScale();
+  updateUI(er, crNorm);
+  requestAnimationFrame(loop);
+}
+
+window.addEventListener('resize',()=>{resizeSim();resizeScale();});
+document.getElementById('sl').addEventListener('input',e=>{tTarget=parseInt(e.target.value);});
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
