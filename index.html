@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vapor Pressure — Regents Chemistry</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;600;700&display=swap');
+  :root {
+    --navy:#0a1628; --blue:#1a3a6b; --cyan:#00d4ff;
+    --orange:#ff6b2b; --gold:#ffd166; --green:#06d6a0;
+    --light:#e8f4f8; --muted:#8ba7c0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--navy);color:var(--light);font-family:'Sora',sans-serif;min-height:100vh;padding:20px 16px 48px;}
+  header{text-align:center;margin-bottom:20px;}
+  .label{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:4px;color:var(--cyan);text-transform:uppercase;margin-bottom:6px;}
+  h1{font-size:clamp(24px,5vw,42px);font-weight:700;background:linear-gradient(135deg,#fff 0%,var(--cyan) 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+  .subtitle{color:var(--muted);font-size:13px;margin-top:5px;font-weight:300;}
+  .panel{max-width:900px;margin:0 auto 16px;background:#0d1f3c;border:1px solid rgba(0,212,255,0.22);border-radius:18px;overflow:hidden;}
+  .panel-title{background:rgba(0,0,0,0.38);padding:9px 18px;font-family:'Space Mono',monospace;font-size:10px;color:var(--cyan);letter-spacing:2px;border-bottom:1px solid rgba(0,212,255,0.18);display:flex;gap:14px;align-items:center;flex-wrap:wrap;}
+  .legend-dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle;}
+  canvas{display:block;width:100%;}
+  .substance-panel{max-width:900px;margin:0 auto 16px;background:rgba(26,58,107,0.45);border:1px solid rgba(0,212,255,0.18);border-radius:14px;padding:16px 22px;}
+  .substance-panel h3{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--cyan);margin-bottom:12px;}
+  .substance-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;}
+  .substance-card{border-radius:10px;padding:12px 14px;cursor:pointer;border:2px solid transparent;transition:all 0.25s;position:relative;background:rgba(0,0,0,0.3);}
+  .substance-card.active{background:rgba(255,255,255,0.07);}
+  .substance-card:hover{background:rgba(255,255,255,0.05);}
+  .substance-card .s-header{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+  .substance-card .s-dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;border:2px solid rgba(255,255,255,0.3);}
+  .substance-card .s-name{font-family:'Space Mono',monospace;font-size:11px;font-weight:700;}
+  .substance-card .s-formula{font-size:10px;color:var(--muted);margin-bottom:4px;}
+  .substance-card .s-imf{font-size:10px;line-height:1.4;color:rgba(232,244,248,0.7);}
+  .substance-card .s-toggle{position:absolute;top:10px;right:10px;width:18px;height:18px;border-radius:50%;border:2px solid rgba(255,255,255,0.3);display:flex;align-items:center;justify-content:center;font-size:10px;}
+  .substance-card.active .s-toggle{background:rgba(6,214,160,0.8);border-color:var(--green);}
+  .mix-note{font-size:11px;color:var(--muted);margin-top:10px;font-style:italic;}
+  .controls{max-width:900px;margin:0 auto 16px;background:rgba(26,58,107,0.5);border:1px solid rgba(0,212,255,0.15);border-radius:14px;padding:14px 22px;}
+  .ctrl-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+  .ctrl-row label{font-family:'Space Mono',monospace;font-size:12px;color:var(--cyan);white-space:nowrap;}
+  .ctrl-row input[type=range]{flex:1;min-width:140px;accent-color:var(--orange);cursor:pointer;}
+  .temp-display{font-family:'Space Mono',monospace;font-size:20px;font-weight:700;color:var(--orange);min-width:65px;text-align:right;}
+  .vp-display{font-family:'Space Mono',monospace;font-size:12px;color:var(--gold);min-width:200px;text-align:right;line-height:1.6;}
+  .rate-panel{max-width:900px;margin:0 auto 14px;display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .rate-box{background:rgba(26,58,107,0.5);border:1px solid rgba(0,212,255,0.13);border-radius:11px;padding:12px 16px;}
+  .rate-label{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:2px;margin-bottom:7px;}
+  .rate-label.evap{color:var(--orange);} .rate-label.cond{color:var(--cyan);}
+  .bar-track{height:11px;background:rgba(0,0,0,0.4);border-radius:6px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:6px;transition:width 0.4s ease;}
+  .bar-fill.evap{background:linear-gradient(90deg,#c44,var(--orange));}
+  .bar-fill.cond{background:linear-gradient(90deg,#0aa,var(--cyan));}
+  .rate-val{font-family:'Space Mono',monospace;font-size:11px;margin-top:4px;}
+  .rate-val.evap{color:var(--orange);} .rate-val.cond{color:var(--cyan);}
+  .equil-status{max-width:900px;margin:0 auto 18px;border-radius:11px;padding:11px 20px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.5px;text-align:center;transition:background 0.5s,border-color 0.5s,color 0.5s;}
+  .equil-status.at-equil{background:rgba(6,214,160,0.1);border:1px solid rgba(6,214,160,0.38);color:var(--green);}
+  .equil-status.evap-dom{background:rgba(255,107,43,0.09);border:1px solid rgba(255,107,43,0.32);color:var(--orange);}
+  .equil-status.cond-dom{background:rgba(0,212,255,0.07);border:1px solid rgba(0,212,255,0.28);color:var(--cyan);}
+  .boiling-alert{max-width:900px;margin:-10px auto 18px;border-radius:11px;padding:11px 20px;font-family:'Space Mono',monospace;font-size:12px;text-align:center;background:rgba(6,214,160,0.15);border:1px solid rgba(6,214,160,0.5);color:var(--green);display:none;}
+  .boiling-alert.visible{display:block;}
+  .cards{max-width:900px;margin:0 auto 18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;}
+  .card{background:rgba(26,58,107,0.55);border:1px solid rgba(0,212,255,0.12);border-radius:11px;padding:14px;position:relative;overflow:hidden;}
+  .card::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%;border-radius:11px 0 0 11px;}
+  .card.evap::before{background:var(--orange);} .card.cond::before{background:var(--cyan);}
+  .card.equil::before{background:var(--green);} .card.factors::before{background:var(--gold);}
+  .card-icon{font-size:22px;margin-bottom:7px;}
+  .card h3{font-size:12px;font-weight:700;margin-bottom:5px;}
+  .card.evap h3{color:var(--orange);} .card.cond h3{color:var(--cyan);}
+  .card.equil h3{color:var(--green);} .card.factors h3{color:var(--gold);}
+  .card p{font-size:11px;line-height:1.6;color:rgba(232,244,248,0.84);}
+  .causal{max-width:900px;margin:0 auto 18px;background:rgba(26,58,107,0.38);border:1px solid rgba(255,209,102,0.22);border-radius:12px;padding:16px 20px;}
+  .causal h2{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;margin-bottom:12px;}
+  .chain{display:flex;align-items:center;flex-wrap:wrap;gap:5px;}
+  .step{background:rgba(0,0,0,0.35);border-radius:6px;padding:7px 9px;font-size:10px;line-height:1.4;text-align:center;max-width:100px;border:1px solid rgba(255,255,255,0.07);}
+  .step span{display:block;font-weight:700;color:var(--gold);font-size:8px;margin-bottom:2px;letter-spacing:1px;}
+  .arr{color:var(--muted);font-size:14px;flex-shrink:0;}
+  .regents{max-width:900px;margin:0 auto;background:rgba(6,214,160,0.07);border:1px solid rgba(6,214,160,0.26);border-radius:12px;padding:16px 20px;}
+  .regents h2{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:3px;color:var(--green);text-transform:uppercase;margin-bottom:10px;}
+  .regents ul{list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:7px;}
+  .regents li{font-size:11px;line-height:1.5;padding-left:14px;position:relative;color:rgba(232,244,248,0.87);}
+  .regents li::before{content:'\25B8';position:absolute;left:0;color:var(--green);}
+  .hl{color:var(--gold);font-weight:600;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="label">NYS Regents Chemistry</div>
+  <h1>Vapor Pressure</h1>
+  <p class="subtitle">Dynamic equilibrium &#8212; select substances, mix liquids, observe molecular behavior</p>
+</header>
+
+<div class="substance-panel">
+  <h3>SELECT LIQUID(S) &#8212; click to toggle (mix up to 4)</h3>
+  <div class="substance-grid" id="substanceGrid"></div>
+  <div class="mix-note" id="mixNote">Mix multiple liquids to compare volatility &#8212; each substance has its own colored molecules</div>
+</div>
+
+<div class="panel">
+  <div class="panel-title" id="containerTitle">
+    <span>MOLECULAR CONTAINER</span>
+    <span style="margin-left:auto" id="legendItems"></span>
+  </div>
+  <canvas id="sim" height="400"></canvas>
+</div>
+
+<div class="controls">
+  <div class="ctrl-row">
+    <label for="sl">TEMPERATURE</label>
+    <input type="range" id="sl" min="0" max="150" value="25" step="1">
+    <div class="temp-display" id="tDisp">25&#176;C</div>
+    <div class="vp-display" id="vpDisp"></div>
+  </div>
+  <div class="ctrl-row" style="margin-top:12px;border-top:1px solid rgba(0,212,255,0.12);padding-top:12px">
+    <label for="slAtm" style="color:var(--green)">ATM PRESSURE</label>
+    <input type="range" id="slAtm" min="0" max="200" value="101.3" step="0.5" style="accent-color:#06d6a0">
+    <div class="temp-display" style="color:var(--green);font-size:15px;min-width:80px" id="atmDisp">101.3 kPa</div>
+    <div class="vp-display" id="bpDisp" style="color:var(--green)"></div>
+  </div>
+</div>
+
+<div class="panel">
+  <div class="panel-title">
+    <span>EQUILIBRIUM BALANCE</span>
+    <span style="margin-left:auto;color:var(--orange)">&#9650; evaporation rate</span>
+    <span style="color:var(--cyan)">&#9660; condensation rate</span>
+    <span style="color:var(--green)" id="scaleStatus">balanced</span>
+  </div>
+  <canvas id="scale" height="200"></canvas>
+</div>
+
+<div class="rate-panel">
+  <div class="rate-box">
+    <div class="rate-label evap">EVAPORATION RATE</div>
+    <div class="bar-track"><div class="bar-fill evap" id="evapBar" style="width:20%"></div></div>
+    <div class="rate-val evap" id="evapVal">LOW</div>
+  </div>
+  <div class="rate-box">
+    <div class="rate-label cond">CONDENSATION RATE</div>
+    <div class="bar-track"><div class="bar-fill cond" id="condBar" style="width:20%"></div></div>
+    <div class="rate-val cond" id="condVal">LOW</div>
+  </div>
+</div>
+
+<div class="equil-status at-equil" id="eqStatus">DYNAMIC EQUILIBRIUM &#8212; evaporation rate = condensation rate</div>
+<div class="boiling-alert" id="boilingAlert"></div>
+
+<div class="cards">
+  <div class="card evap"><div class="card-icon">&#128308;</div><h3>EVAPORATION</h3><p>High-energy surface molecules overcome IMFs and escape to gas phase. Rate depends on <em>temperature</em> and <em>IMF strength</em> &#8212; weaker IMFs = higher evap rate.</p></div>
+  <div class="card cond"><div class="card-icon">&#128309;</div><h3>CONDENSATION</h3><p>Vapor molecules lose KE and are recaptured by IMFs. Rate depends on <em>vapor concentration</em> &#8212; more vapor = more surface collisions.</p></div>
+  <div class="card equil"><div class="card-icon">&#8652;</div><h3>DYNAMIC EQUILIBRIUM</h3><p>In a closed container, rates become equal. Constant vapor pressure = <strong>vapor pressure</strong>. Higher temp or weaker IMFs &#8594; higher VP.</p></div>
+  <div class="card factors"><div class="card-icon">&#128202;</div><h3>TABLE H ORDER</h3><p>Propanone &gt; Ethanol &gt; Water &gt; Ethanoic acid in VP at any temperature. Propanone has weakest IMFs; ethanoic acid has strongest.</p></div>
+</div>
+
+<div class="causal">
+  <h2>Causal Mechanism: Temperature &#8594; Vapor Pressure</h2>
+  <div class="chain">
+    <div class="step"><span>CAUSE</span>Temp rises</div><div class="arr">&#8594;</div>
+    <div class="step"><span>KMT</span>Avg KE increases</div><div class="arr">&#8594;</div>
+    <div class="step"><span>ESCAPE</span>More molecules exceed escape KE</div><div class="arr">&#8594;</div>
+    <div class="step"><span>EVAP</span>Evap rate jumps</div><div class="arr">&#8594;</div>
+    <div class="step"><span>VAPOR</span>Vapor count builds</div><div class="arr">&#8594;</div>
+    <div class="step"><span>COND</span>Cond rate rises to match</div><div class="arr">&#8594;</div>
+    <div class="step"><span>NEW EQ</span>Higher VP equilibrium</div><div class="arr">&#8594;</div>
+    <div class="step"><span>BOIL</span>VP = P<sub>atm</sub></div>
+  </div>
+</div>
+
+<div class="regents">
+  <h2>Regents Key Takeaways</h2>
+  <ul>
+    <li>VP measured in a <span class="hl">closed container at equilibrium</span></li>
+    <li><span class="hl">Temp up = VP up</span> for all liquids</li>
+    <li><span class="hl">Weak IMFs = High VP</span> (more volatile)</li>
+    <li>At <span class="hl">boiling point</span>: VP = atmospheric pressure</li>
+    <li>VP does <span class="hl">NOT</span> depend on quantity of liquid</li>
+    <li>Use <span class="hl">Table H</span>: propanone, ethanol, water, ethanoic acid</li>
+    <li><span class="hl">Propanone boils ~56C</span>, ethanol ~78C, water 100C, ethanoic acid ~118C</li>
+    <li>VP is a property of <span class="hl">substance + temperature only</span></li>
+  </ul>
+</div>
+
+<script>
+// All mutable state — var (not let) avoids temporal dead zone entirely
+var temp = 25, tTarget = 25, atmPressure = 101.3;
+
+
+var scaleAngle = 0, scaleVelocity = 0, evapPanCount = 0, condPanCount = 0;
+var vapors = [], transits = [], splashes = [], bubbles = [];
+var pid = 0, lastCond = 0, lastEvap = {}, lastBubble = {};
+var SCALE_SPRING = 0.22, SCALE_DAMP = 0.65, SCALE_MAX = 0.38, TOTAL_MOL_CAP = 60;
+var simCanvas, sCtx, scaleCanvas, bCtx;
+
+// ── Substances ──────────────────────────────
+var SUBSTANCES = [
+  { id:'propanone', name:'Propanone', formula:'(CH3)2CO', imf:'Dipole-dipole (weak)',
+    color:'rgba(255,220,50,0.92)', colorGlow:'rgba(255,240,120,1)', colorHex:'#ffdc32',
+    liquidR:220, liquidG:165, liquidB:20,
+    vp:function(T){return Math.max(0.01,Math.pow(10,7.11714-1210.595/(229.664+T))/7.50062);},
+    evapFactor:1.0, active:true },
+  { id:'ethanol', name:'Ethanol', formula:'C2H5OH', imf:'H-bonding (moderate)',
+    color:'rgba(180,100,255,0.92)', colorGlow:'rgba(210,160,255,1)', colorHex:'#b464ff',
+    liquidR:90, liquidG:40, liquidB:140,
+    vp:function(T){return Math.max(0.01,Math.pow(10,8.20417-1642.89/(230.300+T))/7.50062);},
+    evapFactor:0.72, active:false },
+  { id:'water', name:'Water', formula:'H2O', imf:'H-bonding (strong)',
+    color:'rgba(40,180,255,0.92)', colorGlow:'rgba(130,220,255,1)', colorHex:'#28b4ff',
+    liquidR:18, liquidG:82, liquidB:148,
+    vp:function(T){return Math.max(0.01,Math.pow(10,8.07131-1730.63/(233.426+T))/7.50062);},
+    evapFactor:0.48, active:false },
+  { id:'ethanoic', name:'Ethanoic Acid', formula:'CH3COOH', imf:'H-bonding + dimerization (strongest)',
+    color:'rgba(255,90,90,0.92)', colorGlow:'rgba(255,160,140,1)', colorHex:'#ff5a5a',
+    liquidR:140, liquidG:30, liquidB:30,
+    vp:function(T){return Math.max(0.01,Math.pow(10,7.38782-1533.313/(222.309+T))/7.50062);},
+    evapFactor:0.28, active:false }
+];
+
+// ── Physics ──────────────────────────────────
+function totalVP(T) {
+  var sum=0; for(var i=0;i<SUBSTANCES.length;i++) if(SUBSTANCES[i].active) sum+=SUBSTANCES[i].vp(T); return sum;
+}
+function combinedEvapRate(T) {
+  var active=[],i; for(i=0;i<SUBSTANCES.length;i++) if(SUBSTANCES[i].active) active.push(SUBSTANCES[i]);
+  if(!active.length) return 0;
+  var sum=0; for(i=0;i<active.length;i++) sum+=active[i].evapFactor*(0.06+(T/100)*0.94);
+  return sum/active.length;
+}
+function eqCount(s,T) {
+  var active=[],tvp=0,i;
+  for(i=0;i<SUBSTANCES.length;i++) if(SUBSTANCES[i].active){active.push(SUBSTANCES[i]);tvp+=SUBSTANCES[i].vp(T);}
+  if(!tvp) return 2;
+  var total=8+(T/100)*(TOTAL_MOL_CAP-8);
+  return Math.max(1,Math.round((s.vp(T)/tvp)*total));
+}
+function totalEqCount(T) {
+  var sum=0; for(var i=0;i<SUBSTANCES.length;i++) if(SUBSTANCES[i].active) sum+=eqCount(SUBSTANCES[i],T); return sum;
+}
+function boilingPt(s,atm) {
+  var lo=0,hi=200,mid;
+  for(var i=0;i<80;i++){mid=(lo+hi)/2; if(s.vp(mid)<atm) lo=mid; else hi=mid;}
+  return (lo+hi)/2;
+}
+
+// ── Canvas helpers ───────────────────────────
+function resizeSim() {
+  var w = simCanvas && simCanvas.parentElement ? simCanvas.parentElement.clientWidth : 0;
+  simCanvas.width  = Math.max(400, w||860);
+  simCanvas.height = 400;
+}
+function resizeScale() {
+  var w = scaleCanvas && scaleCanvas.parentElement ? scaleCanvas.parentElement.clientWidth : 0;
+  scaleCanvas.width  = Math.max(400, w||860);
+  scaleCanvas.height = 200;
+}
+function layout() {
+  var W=simCanvas.width,H=simCanvas.height;
+  return {W:W,H:H,x0:44,x1:W-44,y0:22,y1:H-22,surf:Math.round(H*0.60)};
+}
+function uid(){return ++pid;}
+function mol(ctx,x,y,r,fill,stroke,sw){
+  ctx.beginPath();ctx.arc(x,y,r,0,Math.PI*2);
+  ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=sw;ctx.stroke();
+}
+function rRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+
+// ── Particles ────────────────────────────────
+function mkVapor(lo,s){
+  var spd=0.8+Math.random()*1.2,ang=Math.random()*Math.PI*2,gasH=lo.surf-lo.y0;
+  return{id:uid(),sid:s.id,x:lo.x0+14+Math.random()*(lo.x1-lo.x0-28),
+    y:lo.y0+12+Math.random()*(gasH*0.7),vx:Math.cos(ang)*spd,vy:-Math.abs(Math.sin(ang)*spd)-0.2};
+}
+function resetSim(){
+  vapors=[];transits=[];splashes=[];bubbles=[];
+  var lo=layout(),i,s,n;
+  for(i=0;i<SUBSTANCES.length;i++){
+    s=SUBSTANCES[i]; if(!s.active) continue;
+    n=eqCount(s,temp);
+    for(var j=0;j<n;j++) vapors.push(mkVapor(lo,s));
+  }
+  lastCond=0;
+  for(i=0;i<SUBSTANCES.length;i++){lastEvap[SUBSTANCES[i].id]=0;lastBubble[SUBSTANCES[i].id]=0;}
+}
+function spawnEvap(lo,s){
+  transits.push({id:uid(),type:'evap',sid:s.id,
+    x:lo.x0+18+Math.random()*(lo.x1-lo.x0-36),y:lo.surf,
+    vx:(Math.random()-0.5)*1.1,vy:-(2.2+Math.random()*1.5)});
+}
+function spawnCond(lo){
+  if(!vapors.length) return;
+  var idx=Math.floor(Math.random()*vapors.length),v=vapors.splice(idx,1)[0];
+  transits.push({id:v.id,type:'cond',sid:v.sid,x:v.x,y:v.y,
+    vx:(Math.random()-0.5)*0.7,vy:1.2+Math.random()*1.4});
+}
+function spawnSplash(x,y,color){
+  for(var i=0;i<5;i++) splashes.push({x:x,y:y,vx:(Math.random()-0.5)*2.6,
+    vy:-(0.5+Math.random()*2),life:1,r:1.5+Math.random()*2.5,color:color});
+}
+function spawnBubble(lo,s){
+  var bx=lo.x0+20+Math.random()*(lo.x1-lo.x0-40);
+  var by=lo.y1-10-Math.random()*(lo.y1-lo.surf-20);
+  bubbles.push({id:uid(),sid:s.id,x:bx,y:by,r:3+Math.random()*2,vy:-(0.8+Math.random()*1.2),life:1.0});
+}
+function getSub(sid){for(var i=0;i<SUBSTANCES.length;i++) if(SUBSTANCES[i].id===sid) return SUBSTANCES[i]; return SUBSTANCES[2];}
+
+// ── Substance UI ──────────────────────────────
+function buildSubstanceUI(){
+  var grid=document.getElementById('substanceGrid');
+  grid.innerHTML='';
+  for(var i=0;i<SUBSTANCES.length;i++){
+    (function(s){
+      var card=document.createElement('div');
+      card.className='substance-card'+(s.active?' active':'');
+      card.style.borderColor=s.active?s.colorHex:'transparent';
+      card.innerHTML='<div class="s-header">'
+        +'<div class="s-dot" style="background:'+s.colorHex+'"></div>'
+        +'<div class="s-name" style="color:'+s.colorHex+'">'+s.name+'</div>'
+        +'<div class="s-toggle">'+(s.active?'&#10003;':'')+'</div>'
+        +'</div>'
+        +'<div class="s-formula">'+s.formula+'</div>'
+        +'<div class="s-imf">'+s.imf+'</div>';
+      card.addEventListener('click',function(){
+        var cnt=0; for(var j=0;j<SUBSTANCES.length;j++) if(SUBSTANCES[j].active) cnt++;
+        if(!s.active||cnt>1){s.active=!s.active;buildSubstanceUI();resetSim();updateLegend();}
+      });
+      grid.appendChild(card);
+    })(SUBSTANCES[i]);
+  }
+}
+function updateLegend(){
+  var leg=document.getElementById('legendItems'),html='';
+  for(var i=0;i<SUBSTANCES.length;i++){
+    if(SUBSTANCES[i].active) html+='<span><span class="legend-dot" style="background:'+SUBSTANCES[i].colorHex+'"></span>'+SUBSTANCES[i].name+'</span>';
+  }
+  leg.innerHTML=html;
+}
+
+// ── Draw liquid molecules ─────────────────────
+function drawLiquid(lo,t01,ts){
+  var x0=lo.x0,x1=lo.x1,y1=lo.y1,surf=lo.surf;
+  var active=[],i; for(i=0;i<SUBSTANCES.length;i++) if(SUBSTANCES[i].active) active.push(SUBSTANCES[i]);
+  var n=active.length||1;
+  var lr=0,lg=0,lb=0;
+  for(i=0;i<active.length;i++){lr+=active[i].liquidR;lg+=active[i].liquidG;lb+=active[i].liquidB;}
+  lr=Math.round(lr/n*(1+t01*0.3));lg=Math.round(lg/n);lb=Math.round(lb/n);
+  var R=8,sp=21,cols=Math.floor((x1-x0-18)/sp);
+  var rows=[surf+14,surf+36,surf+58,surf+80];
+  for(var ri=0;ri<rows.length;ri++){
+    var ry=rows[ri]; if(ry+R>y1-4) continue;
+    var off=(ri%2)*(sp/2);
+    for(var c=0;c<cols;c++){
+      var mx=x0+10+off+c*sp; if(mx+R>x1-6) break;
+      var wob=Math.sin(ts*0.0015+c*0.9+ri*1.5)*(0.8+t01*2.2);
+      var s=active[((ri*7+c*3))%n];
+      var fill=s?'rgba('+(s.liquidR+20)+','+(s.liquidG+30)+','+(s.liquidB+40)+',0.78)':'rgba('+(lr+22)+','+(lg+32)+','+(lb+42)+',0.78)';
+      var stroke=s?'rgba('+(s.liquidR+55)+','+(s.liquidG+75)+','+(s.liquidB+85)+',0.92)':'rgba('+(lr+55)+','+(lg+75)+','+(lb+85)+',0.92)';
+      mol(sCtx,mx,ry+wob,R-1,fill,stroke,1.5);
+    }
+  }
+}
+
+// ── Draw VP gauge ─────────────────────────────
+function drawGauge(lo,T){
+  var cx=lo.x1-56,cy=lo.y0+56,gr=44;
+  var vpNow=totalVP(T),vpMax=Math.max(totalVP(130),atmPressure*1.3,150);
+  var frac=Math.min(1,vpNow/vpMax),atmFrac=Math.min(1,atmPressure/vpMax);
+  var isBoil=vpNow>=atmPressure;
+  sCtx.save();
+  sCtx.shadowColor=isBoil?'rgba(6,214,160,0.5)':'rgba(255,209,102,0.35)';sCtx.shadowBlur=14;
+  sCtx.beginPath();sCtx.arc(cx,cy,gr,0,Math.PI*2);
+  sCtx.fillStyle='rgba(8,18,35,0.92)';sCtx.fill();
+  sCtx.strokeStyle=isBoil?'rgba(6,214,160,0.8)':'rgba(255,209,102,0.4)';sCtx.lineWidth=2;sCtx.stroke();
+  var sa=Math.PI*0.75;
+  sCtx.beginPath();sCtx.arc(cx,cy,gr-7,sa,sa+frac*Math.PI*1.5);
+  sCtx.strokeStyle=isBoil?'#06d6a0':'hsl('+(45-frac*30)+',88%,58%)';sCtx.lineWidth=6;sCtx.lineCap='round';sCtx.stroke();
+  var aa=sa+atmFrac*Math.PI*1.5;
+  sCtx.beginPath();
+  sCtx.moveTo(cx+Math.cos(aa)*(gr-15),cy+Math.sin(aa)*(gr-15));
+  sCtx.lineTo(cx+Math.cos(aa)*gr,cy+Math.sin(aa)*gr);
+  sCtx.strokeStyle='rgba(6,214,160,1)';sCtx.lineWidth=3;sCtx.lineCap='round';sCtx.stroke();
+  sCtx.restore();
+  sCtx.save();sCtx.textAlign='center';
+  sCtx.font='600 8px "Space Mono",monospace';
+  sCtx.fillStyle=isBoil?'rgba(6,214,160,0.8)':'rgba(255,209,102,0.68)';
+  sCtx.fillText('VAPOR',cx,cy-13);sCtx.fillText('PRESSURE',cx,cy-3);
+  sCtx.font='bold 13px "Space Mono",monospace';sCtx.fillStyle=isBoil?'#06d6a0':'#ffd166';
+  sCtx.fillText(vpNow.toFixed(1),cx,cy+12);
+  sCtx.font='600 7px "Space Mono",monospace';sCtx.fillStyle='rgba(255,209,102,0.52)';sCtx.fillText('kPa',cx,cy+26);
+  sCtx.font='600 6px "Space Mono",monospace';sCtx.fillStyle='rgba(6,214,160,0.75)';
+  sCtx.fillText(atmPressure<=0?'VACUUM':'atm='+atmPressure.toFixed(0)+'kPa',cx,cy+36);
+  sCtx.restore();
+}
+
+// ── Draw balance scale ────────────────────────
+function drawPanDots(ctx,cx,cy,panR,count,fill,stroke){
+  if(count<=0) return;
+  var n=Math.min(count,12),dotR=4.5,rows=[[3,cy-6],[4,cy-17],[5,cy-28]],placed=0;
+  for(var ri=0;ri<rows.length;ri++){
+    if(placed>=n) break;
+    var inRow=Math.min(n-placed,rows[ri][0]),sx=cx-(inRow-1)*10/2;
+    for(var c=0;c<inRow;c++){
+      ctx.beginPath();ctx.arc(sx+c*10,rows[ri][1],dotR,0,Math.PI*2);
+      ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=1;ctx.stroke();
+    }
+    placed+=inRow;
+  }
+}
+function drawScale(){
+  var W=scaleCanvas.width,H=scaleCanvas.height;
+  bCtx.clearRect(0,0,W,H);
+  var bg=bCtx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0d1f3c');bg.addColorStop(1,'#060e1e');
+  bCtx.fillStyle=bg;bCtx.fillRect(0,0,W,H);
+  var cx=W/2,pivY=54,armLen=Math.min(W*0.36,200),panR=Math.min(44,W*0.08),sLen=38;
+  bCtx.save();bCtx.strokeStyle='rgba(0,212,255,0.5)';bCtx.lineWidth=3;
+  bCtx.beginPath();bCtx.moveTo(cx,pivY);bCtx.lineTo(cx,pivY+60);bCtx.stroke();
+  bCtx.strokeStyle='rgba(0,212,255,0.3)';bCtx.lineWidth=5;bCtx.lineCap='round';
+  bCtx.beginPath();bCtx.moveTo(cx-30,pivY+60);bCtx.lineTo(cx+30,pivY+60);bCtx.stroke();
+  bCtx.restore();
+  bCtx.save();bCtx.shadowColor='rgba(0,212,255,0.4)';bCtx.shadowBlur=10;
+  bCtx.beginPath();bCtx.arc(cx,pivY,7,0,Math.PI*2);bCtx.fillStyle='rgba(0,212,255,0.9)';bCtx.fill();bCtx.restore();
+  bCtx.save();bCtx.translate(cx,pivY);bCtx.rotate(scaleAngle);
+  var beamCol=scaleAngle>0.05?'rgba(255,150,80,0.9)':scaleAngle<-0.05?'rgba(80,210,255,0.9)':'rgba(6,214,160,0.9)';
+  bCtx.save();bCtx.shadowColor=scaleAngle>0.05?'rgba(255,107,43,0.35)':scaleAngle<-0.05?'rgba(0,212,255,0.35)':'rgba(6,214,160,0.35)';bCtx.shadowBlur=12;
+  bCtx.strokeStyle=beamCol;bCtx.lineWidth=5;bCtx.lineCap='round';
+  bCtx.beginPath();bCtx.moveTo(-armLen,0);bCtx.lineTo(armLen,0);bCtx.stroke();bCtx.restore();
+  // Left pan (evap)
+  bCtx.strokeStyle='rgba(255,107,43,0.55)';bCtx.lineWidth=1.5;bCtx.setLineDash([3,3]);
+  bCtx.beginPath();bCtx.moveTo(-armLen,0);bCtx.lineTo(-armLen,sLen);bCtx.stroke();bCtx.setLineDash([]);
+  bCtx.save();bCtx.shadowColor='rgba(255,107,43,0.4)';bCtx.shadowBlur=10;
+  bCtx.beginPath();bCtx.arc(-armLen,sLen,panR,0,Math.PI);bCtx.strokeStyle='rgba(255,107,43,0.85)';bCtx.lineWidth=2.5;bCtx.stroke();
+  bCtx.beginPath();bCtx.moveTo(-armLen-panR,sLen);bCtx.arc(-armLen,sLen,panR,Math.PI,0,true);bCtx.closePath();bCtx.fillStyle='rgba(255,107,43,0.12)';bCtx.fill();bCtx.restore();
+  drawPanDots(bCtx,-armLen,sLen,panR,Math.round(evapPanCount),'rgba(255,200,50,0.9)','rgba(255,230,100,1)');
+  bCtx.save();bCtx.textAlign='center';bCtx.font='bold 9px "Space Mono",monospace';bCtx.fillStyle='rgba(255,107,43,0.85)';bCtx.fillText('EVAP',-armLen,sLen+panR+16);bCtx.restore();
+  // Right pan (cond)
+  bCtx.strokeStyle='rgba(0,212,255,0.55)';bCtx.lineWidth=1.5;bCtx.setLineDash([3,3]);
+  bCtx.beginPath();bCtx.moveTo(armLen,0);bCtx.lineTo(armLen,sLen);bCtx.stroke();bCtx.setLineDash([]);
+  bCtx.save();bCtx.shadowColor='rgba(0,212,255,0.4)';bCtx.shadowBlur=10;
+  bCtx.beginPath();bCtx.arc(armLen,sLen,panR,0,Math.PI);bCtx.strokeStyle='rgba(0,212,255,0.85)';bCtx.lineWidth=2.5;bCtx.stroke();
+  bCtx.beginPath();bCtx.moveTo(armLen-panR,sLen);bCtx.arc(armLen,sLen,panR,Math.PI,0,true);bCtx.closePath();bCtx.fillStyle='rgba(0,212,255,0.10)';bCtx.fill();bCtx.restore();
+  drawPanDots(bCtx,armLen,sLen,panR,Math.round(evapPanCount),'rgba(0,200,245,0.9)','rgba(140,240,255,1)');
+  bCtx.save();bCtx.textAlign='center';bCtx.font='bold 9px "Space Mono",monospace';bCtx.fillStyle='rgba(0,212,255,0.85)';bCtx.fillText('COND',armLen,sLen+panR+16);bCtx.restore();
+  bCtx.restore();
+  var stxt,scol;
+  if(Math.abs(scaleAngle)<0.04){stxt='BALANCED - dynamic equilibrium';scol='#06d6a0';document.getElementById('scaleStatus').textContent='balanced';document.getElementById('scaleStatus').style.color='#06d6a0';}
+  else if(scaleAngle>0){stxt='EVAPORATION DOMINANT - vapor accumulating';scol='#ff6b2b';document.getElementById('scaleStatus').textContent='evap dominant';document.getElementById('scaleStatus').style.color='#ff6b2b';}
+  else{stxt='CONDENSATION DOMINANT - vapor decreasing';scol='#00d4ff';document.getElementById('scaleStatus').textContent='cond dominant';document.getElementById('scaleStatus').style.color='#00d4ff';}
+  bCtx.save();bCtx.textAlign='center';bCtx.font='600 11px "Space Mono",monospace';bCtx.fillStyle=scol;bCtx.fillText(stxt,W/2,H-16);bCtx.restore();
+}
+
+// ── UI update ─────────────────────────────────
+function updateUI(er,crNorm){
+  var T=Math.round(temp),i,s;
+  document.getElementById('tDisp').textContent=T+'°C';
+  var active=[]; for(i=0;i<SUBSTANCES.length;i++) if(SUBSTANCES[i].active) active.push(SUBSTANCES[i]);
+  var vpHtml=''; for(i=0;i<active.length;i++){s=active[i];vpHtml+='<span style="color:'+s.colorHex+'">'+s.name+': '+s.vp(T).toFixed(1)+' kPa'+(s.vp(T)>=atmPressure?' 🔥':'')+'</span> ';}
+  document.getElementById('vpDisp').innerHTML=vpHtml;
+  var bpHtml=''; for(i=0;i<active.length;i++){s=active[i];bpHtml+='<span style="color:'+s.colorHex+'">'+(atmPressure<=0?s.name+': boils in vacuum':'BP: '+boilingPt(s,atmPressure).toFixed(1)+'\u00b0C')+'</span> ';}
+  document.getElementById('bpDisp').innerHTML=bpHtml;
+  document.getElementById('atmDisp').textContent=atmPressure<=0?'0 kPa — VACUUM':atmPressure.toFixed(1)+' kPa ('+(atmPressure/101.325).toFixed(3)+' atm)';
+  document.getElementById('evapBar').style.width=(er*100).toFixed(0)+'%';
+  document.getElementById('condBar').style.width=Math.min(100,(er*crNorm*100)).toFixed(0)+'%';
+  var lbl=function(r){return r<0.2?'VERY LOW':r<0.45?'LOW':r<0.7?'MODERATE':'HIGH';};
+  document.getElementById('evapVal').textContent=lbl(er);
+  document.getElementById('condVal').textContent=lbl(er*crNorm);
+  var el=document.getElementById('eqStatus'),diff=crNorm-1;
+  if(Math.abs(diff)<0.12){el.className='equil-status at-equil';el.textContent='DYNAMIC EQUILIBRIUM — evaporation rate = condensation rate';}
+  else if(diff<0){el.className='equil-status evap-dom';el.textContent='EVAPORATION > CONDENSATION — vapor building up...';}
+  else{el.className='equil-status cond-dom';el.textContent='CONDENSATION > EVAPORATION — vapor decreasing...';}
+  var boiling=[]; for(i=0;i<active.length;i++) if(active[i].vp(T)>=atmPressure) boiling.push(active[i].name);
+  var al=document.getElementById('boilingAlert');
+  if(boiling.length){
+    al.className='boiling-alert visible';
+    var presLabel=atmPressure<=0?'VACUUM (0 kPa)':atmPressure.toFixed(1)+' kPa';
+    var msgs=[];
+    for(var bi=0;bi<boiling.length;bi++) msgs.push(boiling[bi]+' is boiling!');
+    al.textContent=msgs.join('  |  ')+'  —  Atmospheric/External pressure ('+presLabel+') is equal to or below Vapor Pressure.';
+  } else al.className='boiling-alert';
+}
+
+// ── Main loop ─────────────────────────────────
+function loop(ts){
+  if(Math.abs(temp-tTarget)>0.05) temp+=(tTarget-temp)*0.04; else temp=tTarget;
+  var t01=Math.max(0,Math.min(1,temp/100)),lo=layout();
+  var W=lo.W,H=lo.H,x0=lo.x0,x1=lo.x1,y0=lo.y0,y1=lo.y1,surf=lo.surf;
+  var eq=totalEqCount(temp),cur=vapors.length,er=combinedEvapRate(temp),crNorm=eq>0?Math.min(2,cur/eq):0;
+  var i,s,v,p,b;
+  evapPanCount+=(er*10-evapPanCount)*0.35;condPanCount+=(er*crNorm*10-condPanCount)*0.35;
+  var ta=(1-crNorm)*SCALE_MAX;var ct=Math.max(-SCALE_MAX,Math.min(SCALE_MAX,ta));
+  scaleVelocity+=(ct-scaleAngle)*SCALE_SPRING;scaleVelocity*=SCALE_DAMP;scaleAngle+=scaleVelocity;
+
+  sCtx.clearRect(0,0,W,H);
+  var bg=sCtx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#0d1f3c');bg.addColorStop(1,'#060e1e');
+  sCtx.fillStyle=bg;sCtx.fillRect(0,0,W,H);
+  sCtx.save();sCtx.strokeStyle='rgba(0,212,255,0.42)';sCtx.lineWidth=2.5;sCtx.shadowColor='rgba(0,212,255,0.2)';sCtx.shadowBlur=10;
+  rRect(sCtx,x0,y0,x1-x0,y1-y0,14);sCtx.stroke();sCtx.restore();
+
+  var active=[]; for(i=0;i<SUBSTANCES.length;i++) if(SUBSTANCES[i].active) active.push(SUBSTANCES[i]);
+  var n=active.length||1,lr=0,lg=0,lb=0;
+  for(i=0;i<active.length;i++){lr+=active[i].liquidR;lg+=active[i].liquidG;lb+=active[i].liquidB;}
+  lr=Math.round(lr/n);lg=Math.round(lg/n);lb=Math.round(lb/n);
+  sCtx.save();sCtx.beginPath();sCtx.rect(x0+2,surf,x1-x0-4,y1-surf-2);sCtx.clip();
+  var lg2=sCtx.createLinearGradient(0,surf,0,y1);
+  lg2.addColorStop(0,'rgba('+lr+','+lg+','+lb+',0.72)');
+  lg2.addColorStop(1,'rgba('+Math.round(lr*.55)+','+Math.round(lg*.55)+','+Math.round(lb*.65)+',0.93)');
+  sCtx.fillStyle=lg2;sCtx.fillRect(x0+2,surf,x1-x0-4,y1-surf-2);sCtx.restore();
+
+  // Wave
+  sCtx.save();
+  var wA=2.5+t01*4.5,wS=0.0008+t01*0.0014,nP=Math.floor((x1-x0)/3);
+  function wy(ii){var wx=x0+ii*(x1-x0)/nP;return surf+Math.sin(wx*0.045+ts*wS)*wA+Math.sin(wx*0.027+ts*wS*0.7)*wA*0.5+Math.sin(wx*0.018+ts*wS*1.3)*wA*0.3;}
+  var wg=sCtx.createLinearGradient(x0,0,x1,0);
+  wg.addColorStop(0,'rgba(0,212,255,0)');wg.addColorStop(0.08,'rgba('+(lr+90)+','+(lg+140)+','+(lb+160)+','+(0.55+t01*0.35)+')');
+  wg.addColorStop(0.5,'rgba('+(lr+90)+','+(lg+140)+','+(lb+160)+','+(0.75+t01*0.2)+')');
+  wg.addColorStop(0.92,'rgba('+(lr+90)+','+(lg+140)+','+(lb+160)+','+(0.55+t01*0.35)+')');wg.addColorStop(1,'rgba(0,212,255,0)');
+  sCtx.beginPath();sCtx.moveTo(x0,wy(0));for(i=1;i<=nP;i++) sCtx.lineTo(x0+i*(x1-x0)/nP,wy(i));
+  sCtx.strokeStyle=wg;sCtx.lineWidth=2.5;sCtx.lineJoin='round';sCtx.shadowColor='rgba('+(lr+60)+','+(lg+120)+','+(lb+160)+','+(0.4+t01*0.4)+')';sCtx.shadowBlur=8+t01*10;sCtx.stroke();sCtx.restore();
+
+  drawLiquid(lo,t01,ts);
+  sCtx.save();sCtx.textAlign='center';sCtx.font='600 11px "Space Mono",monospace';
+  sCtx.fillStyle='rgba(0,212,255,0.28)';sCtx.fillText('GAS PHASE  (vapor)',W/2,y0+20);
+  sCtx.fillStyle='rgba('+(lr+30)+','+(lg+55)+','+(lb+65)+',0.42)';sCtx.fillText('LIQUID PHASE',W/2,surf+26);sCtx.restore();
+  sCtx.save();sCtx.textAlign='left';sCtx.font='500 10px "Space Mono",monospace';sCtx.fillStyle='rgba(155,210,255,0.48)';sCtx.fillText('vapor: '+cur+' molecules',x0+10,y0+20);sCtx.restore();
+  drawGauge(lo,Math.round(temp));
+
+  // Boiling bubbles
+  for(i=0;i<active.length;i++){
+    s=active[i]; if(s.vp(Math.round(temp))<atmPressure) continue;
+    var ex=s.vp(Math.round(temp))-atmPressure,rate=Math.max(300,1200-ex*25);
+    if(!lastBubble[s.id]) lastBubble[s.id]=0;
+    if(ts-lastBubble[s.id]>rate){spawnBubble(lo,s);lastBubble[s.id]=ts;}
+  }
+  for(i=bubbles.length-1;i>=0;i--){
+    b=bubbles[i];var bs=getSub(b.sid);
+    b.y+=b.vy;b.r+=0.06;b.vy*=0.995;b.life-=0.008;
+    if(b.y<surf||b.life<=0){spawnSplash(b.x,surf,bs.color);bubbles.splice(i,1);continue;}
+    var ba=Math.min(0.7,b.life*0.8);
+    sCtx.save();sCtx.beginPath();sCtx.arc(b.x,b.y,b.r,0,Math.PI*2);
+    sCtx.strokeStyle=bs.colorGlow.replace('1)',ba+')');sCtx.lineWidth=1.5;sCtx.stroke();
+    sCtx.fillStyle='rgba(255,255,255,'+(ba*0.15)+')';sCtx.fill();sCtx.restore();
+  }
+
+  // Transits
+  var rem=[];
+  for(i=transits.length-1;i>=0;i--){
+    p=transits[i];var ps=getSub(p.sid);
+    if(p.type==='evap'){
+      p.x+=p.vx;p.y+=p.vy;p.vy*=0.964;
+      if(p.y<surf-40){vapors.push({id:uid(),sid:p.sid,x:p.x,y:p.y,vx:p.vx+(Math.random()-0.5)*0.5,vy:Math.min(p.vy,-0.4)});rem.push(i);continue;}
+      sCtx.save();sCtx.strokeStyle=ps.color.replace('0.92','0.28');sCtx.lineWidth=1.8;sCtx.setLineDash([3,5]);sCtx.beginPath();sCtx.moveTo(p.x,surf);sCtx.lineTo(p.x,p.y+8);sCtx.stroke();sCtx.restore();
+      mol(sCtx,p.x,p.y,7.5,ps.color,ps.colorGlow,2);
+    } else {
+      p.x+=p.vx;p.y+=p.vy;p.vy=Math.min(p.vy+0.06,4);
+      if(p.y>=surf-2){rem.push(i);spawnSplash(p.x,surf,ps.color);continue;}
+      sCtx.save();sCtx.strokeStyle=ps.color.replace('0.92','0.22');sCtx.lineWidth=1.8;sCtx.setLineDash([3,5]);sCtx.beginPath();sCtx.moveTo(p.x,p.y-8);sCtx.lineTo(p.x,Math.max(p.y-50,y0+6));sCtx.stroke();sCtx.restore();
+      mol(sCtx,p.x,p.y,7.5,ps.color,ps.colorGlow,2);
+    }
+  }
+  for(i=0;i<rem.length;i++) transits.splice(rem[i],1);
+
+  // Splashes
+  for(i=splashes.length-1;i>=0;i--){
+    var sp=splashes[i];sp.x+=sp.vx;sp.y+=sp.vy;sp.vy+=0.14;sp.life-=0.065;
+    if(sp.life<=0){splashes.splice(i,1);continue;}
+    sCtx.beginPath();sCtx.arc(sp.x,sp.y,sp.r,0,Math.PI*2);sCtx.fillStyle=sp.color.replace('0.92',String(sp.life*0.65));sCtx.fill();
+  }
+
+  // Vapor molecules
+  var spd=0.48+t01*2.0;
+  for(i=vapors.length-1;i>=0;i--){
+    v=vapors[i];var vs=getSub(v.sid);
+    v.x+=v.vx*spd;v.y+=v.vy*spd;v.vx+=(Math.random()-0.5)*0.15;v.vy+=(Math.random()-0.5)*0.15-0.01;
+    var sp2=Math.sqrt(v.vx*v.vx+v.vy*v.vy),mxS=2.5+t01*1.5;
+    if(sp2>mxS){v.vx=v.vx/sp2*mxS;v.vy=v.vy/sp2*mxS;}
+    if(sp2<0.3&&sp2>0){v.vx=v.vx/sp2*0.3;v.vy=v.vy/sp2*0.3;}
+    if(v.x<x0+9){v.x=x0+9;v.vx=Math.abs(v.vx);}
+    if(v.x>x1-9){v.x=x1-9;v.vx=-Math.abs(v.vx);}
+    if(v.y<y0+9){v.y=y0+9;v.vy=Math.abs(v.vy);}
+    if(v.y>surf-12){spawnSplash(v.x,surf,vs.color);transits.push({id:uid(),type:'evap',sid:v.sid,x:v.x,y:surf,vx:(Math.random()-0.5)*1.1,vy:-(2.2+Math.random()*1.5)});vapors.splice(i,1);continue;}
+    mol(sCtx,v.x,v.y,7.5,vs.color,vs.colorGlow,1.5);
+  }
+
+  // Spawn
+  for(i=0;i<active.length;i++){
+    s=active[i];var sEq=eqCount(s,temp),sCur=0;
+    for(var j=0;j<vapors.length;j++) if(vapors[j].sid===s.id) sCur++;
+    var def=sEq-sCur;
+    if(def>0){var ms=Math.max(150,400-def*40);if(ts-lastEvap[s.id]>ms){spawnEvap(lo,s);lastEvap[s.id]=ts;}}
+  }
+  var exc=Math.max(0,cur-eq),cMs=cur>eq?Math.max(200,600-exc*50):99999;
+  if(ts-lastCond>cMs&&cur>0){spawnCond(lo);lastCond=ts;}
+  if(vapors.length>100) vapors.splice(0,vapors.length-100);
+
+  drawScale();updateUI(er,crNorm);requestAnimationFrame(loop);
+}
+
+
+// ── Init — deferred to window load ────────────
+window.addEventListener('load', function(){
+  simCanvas   = document.getElementById('sim');
+  sCtx        = simCanvas.getContext('2d');
+  scaleCanvas = document.getElementById('scale');
+  bCtx        = scaleCanvas.getContext('2d');
+  resizeSim(); resizeScale();
+  buildSubstanceUI(); updateLegend(); resetSim();
+  document.getElementById('sl').addEventListener('input',function(e){tTarget=parseInt(e.target.value);});
+  document.getElementById('slAtm').addEventListener('input',function(e){atmPressure=Math.max(0,parseFloat(e.target.value));});
+  window.addEventListener('resize',function(){resizeSim();resizeScale();});
+  requestAnimationFrame(loop);
+});
+</script>
+</body>
+</html>
